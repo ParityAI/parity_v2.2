@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef } from "react";
-import { Upload, Search, FileText, File, Download, Trash2, Info } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Upload, Search, FileText, File, Download, Trash2, Info, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,234 +29,201 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
+import {
+  useEvidence,
+  useCreateEvidence,
+  useUpdateEvidence,
+  useDeleteEvidence,
+  Evidence,
+  EvidenceType,
+} from "@/hooks/useEvidence";
 
-interface EvidenceFile {
-  id: string;
-  name: string;
-  type: "pdf" | "csv" | "doc" | "xlsx" | "image" | "other";
-  projectName: string;
-  uploadDate: string;
-  uploader: string;
-  source: string;
-  size: string;
-  category: string;
-}
+const typeIcons: Record<string, typeof FileText> = {
+  pdf: FileText,
+  csv: File,
+  doc: FileText,
+  xlsx: File,
+  document: FileText,
+  screenshot: File,
+  audit_report: FileText,
+  certification: FileText,
+  test_result: File,
+  other: File,
+};
 
-const initialFiles: EvidenceFile[] = [
-  {
-    id: "1",
-    name: "accuracy_report_AUTOFILLED.pdf",
-    type: "pdf",
-    projectName: "HireScore Model",
-    uploadDate: "2026-01-17",
-    uploader: "John Doe",
-    source: "File Manager",
-    size: "2.4 MB",
-    category: "Model Performance",
-  },
-  {
-    id: "2",
-    name: "bias_analysis_AUTOFILLED.csv",
-    type: "csv",
-    projectName: "CandidateRank",
-    uploadDate: "2026-01-17",
-    uploader: "Jane Smith",
-    source: "File Manager",
-    size: "1.2 MB",
-    category: "Bias Testing",
-  },
-  {
-    id: "3",
-    name: "approval_record_AUTOFILLED.pdf",
-    type: "pdf",
-    projectName: "N/A",
-    uploadDate: "2026-01-17",
-    uploader: "Mike Johnson",
-    source: "File Manager",
-    size: "500 KB",
-    category: "Compliance",
-  },
-  {
-    id: "4",
-    name: "vendor_security_assessment.pdf",
-    type: "pdf",
-    projectName: "TalentAI Vendor",
-    uploadDate: "2026-01-15",
-    uploader: "Sarah Wilson",
-    source: "Manual Upload",
-    size: "3.1 MB",
-    category: "Vendor Assessment",
-  },
-  {
-    id: "5",
-    name: "training_completion_records.xlsx",
-    type: "xlsx",
-    projectName: "N/A",
-    uploadDate: "2026-01-14",
-    uploader: "John Doe",
-    source: "HR System",
-    size: "890 KB",
-    category: "Training",
-  },
-];
-
-const fileTypeIcons = {
-  pdf: "text-red-500",
-  csv: "text-green-500",
-  doc: "text-blue-500",
-  xlsx: "text-green-600",
-  image: "text-purple-500",
-  other: "text-gray-500",
+const typeColors: Record<EvidenceType, string> = {
+  document: "bg-blue-100 text-blue-700",
+  screenshot: "bg-purple-100 text-purple-700",
+  audit_report: "bg-green-100 text-green-700",
+  certification: "bg-yellow-100 text-yellow-700",
+  test_result: "bg-orange-100 text-orange-700",
+  other: "bg-gray-100 text-gray-700",
 };
 
 export default function Evidence() {
-  const [files, setFiles] = useState<EvidenceFile[]>(initialFiles);
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  const { data: evidence = [], isLoading } = useEvidence();
+  const createEvidence = useCreateEvidence();
+  const updateEvidence = useUpdateEvidence();
+  const deleteEvidence = useDeleteEvidence();
 
-  const [uploadForm, setUploadForm] = useState({
-    projectName: "",
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingEvidence, setEditingEvidence] = useState<Evidence | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    evidence_type: "document" as EvidenceType,
     category: "",
-    source: "Manual Upload",
+    file_type: "",
+    expires_at: "",
   });
 
-  const filteredFiles = useMemo(() => {
-    return files.filter((file) => {
+  const filteredEvidence = useMemo(() => {
+    return evidence.filter((item) => {
       const matchesSearch =
-        file.name.toLowerCase().includes(search.toLowerCase()) ||
-        file.projectName.toLowerCase().includes(search.toLowerCase()) ||
-        file.uploader.toLowerCase().includes(search.toLowerCase());
-      const matchesCategory = categoryFilter === "all" || file.category === categoryFilter;
-      return matchesSearch && matchesCategory;
+        item.name.toLowerCase().includes(search.toLowerCase()) ||
+        (item.description?.toLowerCase() || "").includes(search.toLowerCase());
+      const matchesType = typeFilter === "all" || item.evidence_type === typeFilter;
+      return matchesSearch && matchesType;
     });
-  }, [files, search, categoryFilter]);
-
-  const categories = useMemo(() => {
-    return [...new Set(files.map(f => f.category))];
-  }, [files]);
+  }, [evidence, search, typeFilter]);
 
   const stats = useMemo(() => ({
-    total: files.length,
-    pdf: files.filter(f => f.type === "pdf").length,
-    csv: files.filter(f => f.type === "csv").length,
-    other: files.filter(f => !["pdf", "csv"].includes(f.type)).length,
-  }), [files]);
+    total: evidence.length,
+    documents: evidence.filter(e => e.evidence_type === "document").length,
+    auditReports: evidence.filter(e => e.evidence_type === "audit_report").length,
+    certifications: evidence.filter(e => e.evidence_type === "certification").length,
+    testResults: evidence.filter(e => e.evidence_type === "test_result").length,
+  }), [evidence]);
 
-  const handleUpload = () => {
-    setUploadForm({
-      projectName: "",
+  const handleAddNew = () => {
+    setEditingEvidence(null);
+    setFormData({
+      name: "",
+      description: "",
+      evidence_type: "document",
       category: "",
-      source: "Manual Upload",
+      file_type: "",
+      expires_at: "",
     });
-    setUploadDialogOpen(true);
+    setDialogOpen(true);
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
+  const handleEdit = (item: Evidence) => {
+    setEditingEvidence(item);
+    setFormData({
+      name: item.name,
+      description: item.description || "",
+      evidence_type: item.evidence_type,
+      category: item.category || "",
+      file_type: item.file_type || "",
+      expires_at: item.expires_at || "",
+    });
+    setDialogOpen(true);
+  };
 
-    const fileExtension = selectedFile.name.split(".").pop()?.toLowerCase() || "";
-    const fileType = ["pdf"].includes(fileExtension) ? "pdf"
-      : ["csv"].includes(fileExtension) ? "csv"
-      : ["doc", "docx"].includes(fileExtension) ? "doc"
-      : ["xls", "xlsx"].includes(fileExtension) ? "xlsx"
-      : ["jpg", "jpeg", "png", "gif"].includes(fileExtension) ? "image"
-      : "other";
+  const handleSave = async () => {
+    if (!formData.name) return;
 
-    const newFile: EvidenceFile = {
-      id: Date.now().toString(),
-      name: selectedFile.name,
-      type: fileType,
-      projectName: uploadForm.projectName || "N/A",
-      uploadDate: new Date().toISOString().split("T")[0],
-      uploader: "Current User",
-      source: uploadForm.source,
-      size: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
-      category: uploadForm.category || "Uncategorized",
+    const evidenceData = {
+      name: formData.name,
+      description: formData.description || null,
+      evidence_type: formData.evidence_type,
+      category: formData.category || null,
+      file_type: formData.file_type || null,
+      expires_at: formData.expires_at || null,
     };
 
-    setFiles([newFile, ...files]);
-    setUploadDialogOpen(false);
-    toast({ title: "File uploaded", description: "The evidence file has been uploaded successfully." });
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (editingEvidence) {
+      await updateEvidence.mutateAsync({ id: editingEvidence.id, ...evidenceData });
+    } else {
+      await createEvidence.mutateAsync(evidenceData);
     }
+    setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setFiles(files.filter(f => f.id !== id));
-    toast({ title: "File deleted", description: "The evidence file has been removed." });
+  const handleDelete = async (id: string) => {
+    await deleteEvidence.mutateAsync(id);
   };
 
-  const handleDownload = (file: EvidenceFile) => {
-    toast({ title: "Download started", description: `Downloading ${file.name}...` });
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Evidence & Documents</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Evidence Hub</h1>
           <p className="text-muted-foreground">
-            This table lists all the files uploaded to the system
+            Manage compliance documents, audit reports, and certifications
           </p>
         </div>
-        <Button onClick={handleUpload} className="gap-2">
+        <Button onClick={handleAddNew} className="gap-2">
           <Upload className="h-4 w-4" />
-          Upload New File
+          Upload Evidence
         </Button>
       </div>
 
       {/* Info Alert */}
       <Alert>
         <Info className="h-4 w-4" />
-        <AlertTitle>Centralized evidence storage speeds up audits</AlertTitle>
+        <AlertTitle>Document management for AI compliance</AlertTitle>
         <AlertDescription>
-          When auditors request documentation, you need to find it quickly. Storing all AI governance evidence in one place
-          (assessments, approvals, test results) makes audit responses faster and reduces stress. Tag files clearly for easy retrieval.
+          Store and organize all evidence required for regulatory compliance, including bias audit reports,
+          model documentation, vendor certifications, and training records.
         </AlertDescription>
       </Alert>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Files</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">PDF Documents</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Documents</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.pdf}</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.documents}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">CSV Data Files</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Audit Reports</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.csv}</div>
+            <div className="text-2xl font-bold text-green-600">{stats.auditReports}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Other Files</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Certifications</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-600">{stats.other}</div>
+            <div className="text-2xl font-bold text-yellow-600">{stats.certifications}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Test Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{stats.testResults}</div>
           </CardContent>
         </Card>
       </div>
@@ -266,21 +233,24 @@ export default function Evidence() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search files by name..."
+            placeholder="Search evidence..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
           />
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Category" />
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories.map((cat) => (
-              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-            ))}
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="document">Documents</SelectItem>
+            <SelectItem value="audit_report">Audit Reports</SelectItem>
+            <SelectItem value="certification">Certifications</SelectItem>
+            <SelectItem value="test_result">Test Results</SelectItem>
+            <SelectItem value="screenshot">Screenshots</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -290,50 +260,71 @@ export default function Evidence() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>File</TableHead>
-              <TableHead>Project Name</TableHead>
-              <TableHead>Upload Date</TableHead>
-              <TableHead>Uploader</TableHead>
-              <TableHead>Source</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>Linked To</TableHead>
+              <TableHead>Uploaded</TableHead>
+              <TableHead>Expires</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredFiles.map((file) => (
-              <TableRow key={file.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <File className={`h-5 w-5 ${fileTypeIcons[file.type]}`} />
-                    <div>
-                      <div className="font-medium">{file.name}</div>
-                      <div className="text-sm text-muted-foreground">{file.size}</div>
+            {filteredEvidence.map((item) => {
+              const Icon = typeIcons[item.evidence_type] || File;
+              return (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Icon className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <div className="font-medium">{item.name}</div>
+                        <div className="text-sm text-muted-foreground truncate max-w-[200px]">
+                          {item.description}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>{file.projectName}</TableCell>
-                <TableCell>{format(new Date(file.uploadDate), "MMM d, yyyy")}</TableCell>
-                <TableCell>{file.uploader}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{file.source}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{file.category}</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleDownload(file)}>
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(file.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {filteredFiles.length === 0 && (
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={typeColors[item.evidence_type]}>
+                      {item.evidence_type.replace(/_/g, " ")}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {item.category ? (
+                      <Badge variant="outline">{item.category}</Badge>
+                    ) : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {item.models?.name || item.vendors?.name || "-"}
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(item.created_at), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    {item.expires_at ? format(new Date(item.expires_at), "MMM d, yyyy") : "-"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600"
+                      onClick={() => handleDelete(item.id)}
+                      disabled={deleteEvidence.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {filteredEvidence.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  No files found
+                  No evidence found
                 </TableCell>
               </TableRow>
             )}
@@ -341,57 +332,96 @@ export default function Evidence() {
         </Table>
       </Card>
 
-      {/* Upload Dialog */}
-      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+      {/* Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Upload New File</DialogTitle>
+            <DialogTitle>{editingEvidence ? "Edit Evidence" : "Upload Evidence"}</DialogTitle>
             <DialogDescription>
-              Add evidence documentation to the system
+              {editingEvidence ? "Update the evidence details." : "Add new evidence to the hub."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="projectName">Project Name (Optional)</Label>
+              <Label htmlFor="name">Name</Label>
               <Input
-                id="projectName"
-                value={uploadForm.projectName}
-                onChange={(e) => setUploadForm({ ...uploadForm, projectName: e.target.value })}
-                placeholder="Link to a project"
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Evidence name"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={uploadForm.category}
-                onValueChange={(value) => setUploadForm({ ...uploadForm, category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Model Performance">Model Performance</SelectItem>
-                  <SelectItem value="Bias Testing">Bias Testing</SelectItem>
-                  <SelectItem value="Compliance">Compliance</SelectItem>
-                  <SelectItem value="Vendor Assessment">Vendor Assessment</SelectItem>
-                  <SelectItem value="Training">Training</SelectItem>
-                  <SelectItem value="Audit">Audit</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label>Select File</Label>
-              <Input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileSelect}
-                accept=".pdf,.csv,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Describe this evidence"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>Evidence Type</Label>
+                <Select
+                  value={formData.evidence_type}
+                  onValueChange={(value: EvidenceType) => setFormData({ ...formData, evidence_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="document">Document</SelectItem>
+                    <SelectItem value="audit_report">Audit Report</SelectItem>
+                    <SelectItem value="certification">Certification</SelectItem>
+                    <SelectItem value="test_result">Test Result</SelectItem>
+                    <SelectItem value="screenshot">Screenshot</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="category">Category</Label>
+                <Input
+                  id="category"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  placeholder="e.g., Compliance, Legal"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="file_type">File Type</Label>
+                <Input
+                  id="file_type"
+                  value={formData.file_type}
+                  onChange={(e) => setFormData({ ...formData, file_type: e.target.value })}
+                  placeholder="e.g., pdf, csv, xlsx"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="expires_at">Expiration Date</Label>
+                <Input
+                  id="expires_at"
+                  type="date"
+                  value={formData.expires_at}
+                  onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSave}
+              disabled={createEvidence.isPending || updateEvidence.isPending}
+            >
+              {(createEvidence.isPending || updateEvidence.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {editingEvidence ? "Update" : "Upload"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

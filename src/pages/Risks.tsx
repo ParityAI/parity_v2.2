@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, AlertTriangle, Shield, Info } from "lucide-react";
+import { Plus, Search, Info, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,79 +30,19 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import {
+  useRisks,
+  useCreateRisk,
+  useUpdateRisk,
+  useDeleteRisk,
+  Risk,
+  RiskSeverity,
+  RiskLikelihood,
+  MitigationStatus,
+} from "@/hooks/useRisks";
 
-interface Risk {
-  id: string;
-  name: string;
-  description: string;
-  severity: "negligible" | "minor" | "moderate" | "major" | "critical";
-  riskLevel: "very_low" | "low" | "medium" | "high" | "very_high";
-  mitigationStatus: "not_started" | "in_progress" | "requires_review" | "completed";
-  owner: string;
-  targetDate: string;
-  controls: string[];
-  category: string;
-  createdAt: string;
-}
-
-const initialRisks: Risk[] = [
-  {
-    id: "1",
-    name: "Algorithmic Bias in Candidate Screening",
-    description: "Risk of discriminatory outcomes in AI-powered resume screening affecting protected groups",
-    severity: "major",
-    riskLevel: "high",
-    mitigationStatus: "requires_review",
-    owner: "John Doe",
-    targetDate: "2026-02-16",
-    controls: ["Bias testing", "Adverse impact analysis", "Human review"],
-    category: "Bias & Fairness",
-    createdAt: "2026-01-10",
-  },
-  {
-    id: "2",
-    name: "Bias in candidate ranking",
-    description: "Potential disparate impact in candidate ranking algorithms",
-    severity: "negligible",
-    riskLevel: "very_low",
-    mitigationStatus: "in_progress",
-    owner: "Jane Smith",
-    targetDate: "2026-01-17",
-    controls: ["Regular monitoring", "Threshold adjustment"],
-    category: "Bias & Fairness",
-    createdAt: "2026-01-05",
-  },
-  {
-    id: "3",
-    name: "Bias in student performance prediction",
-    description: "Risk of biased predictions affecting student opportunities",
-    severity: "major",
-    riskLevel: "high",
-    mitigationStatus: "completed",
-    owner: "Mike Johnson",
-    targetDate: "2026-01-17",
-    controls: ["Fairness constraints", "Regular audits"],
-    category: "Bias & Fairness",
-    createdAt: "2026-01-01",
-  },
-  {
-    id: "4",
-    name: "Data Privacy Breach",
-    description: "Risk of unauthorized access to personal candidate data",
-    severity: "critical",
-    riskLevel: "very_high",
-    mitigationStatus: "in_progress",
-    owner: "Sarah Wilson",
-    targetDate: "2026-02-01",
-    controls: ["Encryption", "Access controls", "Audit logging"],
-    category: "Security",
-    createdAt: "2026-01-08",
-  },
-];
-
-const severityColors = {
+const severityColors: Record<RiskSeverity, string> = {
   negligible: "bg-gray-100 text-gray-700",
   minor: "bg-blue-100 text-blue-700",
   moderate: "bg-yellow-100 text-yellow-700",
@@ -110,7 +50,7 @@ const severityColors = {
   critical: "bg-red-100 text-red-700",
 };
 
-const riskLevelColors = {
+const likelihoodColors: Record<RiskLikelihood, string> = {
   very_low: "bg-green-100 text-green-700",
   low: "bg-green-50 text-green-600",
   medium: "bg-yellow-100 text-yellow-700",
@@ -118,62 +58,64 @@ const riskLevelColors = {
   very_high: "bg-red-100 text-red-700",
 };
 
-const mitigationColors = {
+const mitigationColors: Record<MitigationStatus, string> = {
   not_started: "bg-gray-100 text-gray-700",
   in_progress: "bg-blue-100 text-blue-700",
-  requires_review: "bg-yellow-100 text-yellow-700",
   completed: "bg-green-100 text-green-700",
+  accepted: "bg-purple-100 text-purple-700",
 };
 
 export default function Risks() {
-  const [risks, setRisks] = useState<Risk[]>(initialRisks);
+  const { data: risks = [], isLoading } = useRisks();
+  const createRisk = useCreateRisk();
+  const updateRisk = useUpdateRisk();
+  const deleteRisk = useDeleteRisk();
+
   const [search, setSearch] = useState("");
-  const [riskLevelFilter, setRiskLevelFilter] = useState("all");
+  const [likelihoodFilter, setLikelihoodFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRisk, setEditingRisk] = useState<Risk | null>(null);
-  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    name: "",
+    title: "",
     description: "",
-    severity: "moderate" as Risk["severity"],
-    riskLevel: "medium" as Risk["riskLevel"],
-    mitigationStatus: "not_started" as Risk["mitigationStatus"],
-    owner: "",
-    targetDate: "",
     category: "",
+    severity: "moderate" as RiskSeverity,
+    likelihood: "medium" as RiskLikelihood,
+    mitigation_status: "not_started" as MitigationStatus,
+    mitigation_plan: "",
+    review_date: "",
   });
 
   const filteredRisks = useMemo(() => {
     return risks.filter((risk) => {
       const matchesSearch =
-        risk.name.toLowerCase().includes(search.toLowerCase()) ||
-        risk.description.toLowerCase().includes(search.toLowerCase()) ||
-        risk.owner.toLowerCase().includes(search.toLowerCase());
-      const matchesRiskLevel = riskLevelFilter === "all" || risk.riskLevel === riskLevelFilter;
-      return matchesSearch && matchesRiskLevel;
+        risk.title.toLowerCase().includes(search.toLowerCase()) ||
+        (risk.description?.toLowerCase() || "").includes(search.toLowerCase());
+      const matchesLikelihood = likelihoodFilter === "all" || risk.likelihood === likelihoodFilter;
+      return matchesSearch && matchesLikelihood;
     });
-  }, [risks, search, riskLevelFilter]);
+  }, [risks, search, likelihoodFilter]);
 
   const stats = useMemo(() => ({
-    veryHigh: risks.filter(r => r.riskLevel === "very_high").length,
-    high: risks.filter(r => r.riskLevel === "high").length,
-    medium: risks.filter(r => r.riskLevel === "medium").length,
-    low: risks.filter(r => r.riskLevel === "low").length,
-    veryLow: risks.filter(r => r.riskLevel === "very_low").length,
+    veryHigh: risks.filter(r => r.likelihood === "very_high").length,
+    high: risks.filter(r => r.likelihood === "high").length,
+    medium: risks.filter(r => r.likelihood === "medium").length,
+    low: risks.filter(r => r.likelihood === "low").length,
+    veryLow: risks.filter(r => r.likelihood === "very_low").length,
   }), [risks]);
 
   const handleAddNew = () => {
     setEditingRisk(null);
     setFormData({
-      name: "",
+      title: "",
       description: "",
-      severity: "moderate",
-      riskLevel: "medium",
-      mitigationStatus: "not_started",
-      owner: "",
-      targetDate: "",
       category: "",
+      severity: "moderate",
+      likelihood: "medium",
+      mitigation_status: "not_started",
+      mitigation_plan: "",
+      review_date: "",
     });
     setDialogOpen(true);
   };
@@ -181,47 +123,51 @@ export default function Risks() {
   const handleEdit = (risk: Risk) => {
     setEditingRisk(risk);
     setFormData({
-      name: risk.name,
-      description: risk.description,
+      title: risk.title,
+      description: risk.description || "",
+      category: risk.category || "",
       severity: risk.severity,
-      riskLevel: risk.riskLevel,
-      mitigationStatus: risk.mitigationStatus,
-      owner: risk.owner,
-      targetDate: risk.targetDate,
-      category: risk.category,
+      likelihood: risk.likelihood,
+      mitigation_status: risk.mitigation_status,
+      mitigation_plan: risk.mitigation_plan || "",
+      review_date: risk.review_date || "",
     });
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!formData.name) {
-      toast({ title: "Error", description: "Name is required", variant: "destructive" });
-      return;
-    }
+  const handleSave = async () => {
+    if (!formData.title) return;
+
+    const riskData = {
+      title: formData.title,
+      description: formData.description || null,
+      category: formData.category || null,
+      severity: formData.severity,
+      likelihood: formData.likelihood,
+      mitigation_status: formData.mitigation_status,
+      mitigation_plan: formData.mitigation_plan || null,
+      review_date: formData.review_date || null,
+    };
 
     if (editingRisk) {
-      setRisks(risks.map(r => r.id === editingRisk.id
-        ? { ...r, ...formData, controls: editingRisk.controls }
-        : r
-      ));
-      toast({ title: "Risk updated", description: "The risk has been updated successfully." });
+      await updateRisk.mutateAsync({ id: editingRisk.id, ...riskData });
     } else {
-      const newRisk: Risk = {
-        id: Date.now().toString(),
-        ...formData,
-        controls: [],
-        createdAt: new Date().toISOString().split("T")[0],
-      };
-      setRisks([newRisk, ...risks]);
-      toast({ title: "Risk created", description: "The risk has been created successfully." });
+      await createRisk.mutateAsync(riskData);
     }
     setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setRisks(risks.filter(r => r.id !== id));
-    toast({ title: "Risk deleted", description: "The risk has been removed." });
+  const handleDelete = async (id: string) => {
+    await deleteRisk.mutateAsync(id);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -304,9 +250,9 @@ export default function Risks() {
             className="pl-9"
           />
         </div>
-        <Select value={riskLevelFilter} onValueChange={setRiskLevelFilter}>
+        <Select value={likelihoodFilter} onValueChange={setLikelihoodFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Risk Level" />
+            <SelectValue placeholder="Likelihood" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Levels</SelectItem>
@@ -325,11 +271,11 @@ export default function Risks() {
           <TableHeader>
             <TableRow>
               <TableHead>Risk Name</TableHead>
-              <TableHead>Owner</TableHead>
+              <TableHead>Category</TableHead>
               <TableHead>Severity</TableHead>
+              <TableHead>Likelihood</TableHead>
               <TableHead>Mitigation Status</TableHead>
-              <TableHead>Risk Level</TableHead>
-              <TableHead>Target Date</TableHead>
+              <TableHead>Review Date</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -338,36 +284,46 @@ export default function Risks() {
               <TableRow key={risk.id}>
                 <TableCell>
                   <div className="max-w-[250px]">
-                    <div className="font-medium truncate">{risk.name}</div>
+                    <div className="font-medium truncate">{risk.title}</div>
                     <div className="text-sm text-muted-foreground truncate">
                       {risk.description}
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{risk.owner}</TableCell>
+                <TableCell>
+                  {risk.category ? (
+                    <Badge variant="outline">{risk.category}</Badge>
+                  ) : "-"}
+                </TableCell>
                 <TableCell>
                   <Badge className={severityColors[risk.severity]}>
                     {risk.severity}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={mitigationColors[risk.mitigationStatus]}>
-                    {risk.mitigationStatus.replace(/_/g, " ")}
+                  <Badge className={likelihoodColors[risk.likelihood]}>
+                    {risk.likelihood.replace(/_/g, " ")}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={riskLevelColors[risk.riskLevel]}>
-                    {risk.riskLevel.replace(/_/g, " ")}
+                  <Badge className={mitigationColors[risk.mitigation_status]}>
+                    {risk.mitigation_status.replace(/_/g, " ")}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {format(new Date(risk.targetDate), "dd-MM-yyyy")}
+                  {risk.review_date ? format(new Date(risk.review_date), "MMM d, yyyy") : "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(risk)}>
                     Edit
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(risk.id)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600"
+                    onClick={() => handleDelete(risk.id)}
+                    disabled={deleteRisk.isPending}
+                  >
                     Delete
                   </Button>
                 </TableCell>
@@ -395,11 +351,11 @@ export default function Risks() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Risk Name</Label>
+              <Label htmlFor="title">Risk Name</Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="Enter risk name"
               />
             </div>
@@ -417,7 +373,7 @@ export default function Risks() {
                 <Label>Severity</Label>
                 <Select
                   value={formData.severity}
-                  onValueChange={(value: Risk["severity"]) => setFormData({ ...formData, severity: value })}
+                  onValueChange={(value: RiskSeverity) => setFormData({ ...formData, severity: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -432,10 +388,10 @@ export default function Risks() {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label>Risk Level</Label>
+                <Label>Likelihood</Label>
                 <Select
-                  value={formData.riskLevel}
-                  onValueChange={(value: Risk["riskLevel"]) => setFormData({ ...formData, riskLevel: value })}
+                  value={formData.likelihood}
+                  onValueChange={(value: RiskLikelihood) => setFormData({ ...formData, likelihood: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -454,8 +410,8 @@ export default function Risks() {
               <div className="grid gap-2">
                 <Label>Mitigation Status</Label>
                 <Select
-                  value={formData.mitigationStatus}
-                  onValueChange={(value: Risk["mitigationStatus"]) => setFormData({ ...formData, mitigationStatus: value })}
+                  value={formData.mitigation_status}
+                  onValueChange={(value: MitigationStatus) => setFormData({ ...formData, mitigation_status: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -463,8 +419,8 @@ export default function Risks() {
                   <SelectContent>
                     <SelectItem value="not_started">Not Started</SelectItem>
                     <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="requires_review">Requires Review</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="accepted">Accepted</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -478,30 +434,36 @@ export default function Risks() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="owner">Owner</Label>
-                <Input
-                  id="owner"
-                  value={formData.owner}
-                  onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
-                  placeholder="Risk owner"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="targetDate">Target Date</Label>
-                <Input
-                  id="targetDate"
-                  type="date"
-                  value={formData.targetDate}
-                  onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="mitigation_plan">Mitigation Plan</Label>
+              <Textarea
+                id="mitigation_plan"
+                value={formData.mitigation_plan}
+                onChange={(e) => setFormData({ ...formData, mitigation_plan: e.target.value })}
+                placeholder="Describe the mitigation strategy"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="review_date">Review Date</Label>
+              <Input
+                id="review_date"
+                type="date"
+                value={formData.review_date}
+                onChange={(e) => setFormData({ ...formData, review_date: e.target.value })}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>{editingRisk ? "Update" : "Create"}</Button>
+            <Button
+              onClick={handleSave}
+              disabled={createRisk.isPending || updateRisk.isPending}
+            >
+              {(createRisk.isPending || updateRisk.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {editingRisk ? "Update" : "Create"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

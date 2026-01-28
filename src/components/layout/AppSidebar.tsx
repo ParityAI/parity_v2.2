@@ -22,6 +22,7 @@ import {
   Tv,
   Menu,
   Eye,
+  Settings,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,6 +83,7 @@ const assuranceNav = [
 const governanceNav = [
   { name: "Policy Manager", icon: FileText, href: "/policies" },
   { name: "Incidents", icon: AlertCircle, href: "/incidents" },
+  { name: "User Management", icon: Users, href: "/settings/users" },
 ];
 
 export function AppSidebar() {
