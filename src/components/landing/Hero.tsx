@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Star } from "lucide-react";
+import { ArrowUpRight, Star, Shield, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function Hero() {
@@ -86,108 +86,223 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="glass glow-primary mx-auto max-w-5xl overflow-hidden rounded-2xl">
+          <div className="glass glow-primary mx-auto max-w-6xl overflow-hidden rounded-2xl">
             {/* Dashboard Header */}
-            <div className="flex items-center gap-4 border-b border-border/50 px-6 py-4">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                  <span className="text-sm font-bold text-primary-foreground">P</span>
+            <div className="flex items-center justify-between border-b border-border/50 px-6 py-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                    <span className="text-sm font-bold text-primary-foreground">P</span>
+                  </div>
+                  <span className="font-medium text-foreground">Parity AI</span>
                 </div>
-                <span className="font-medium text-foreground">Parity AI</span>
+                <div className="h-6 w-px bg-border/50" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Governance / Dashboard</p>
+                  <p className="text-sm font-medium text-foreground">Main Dashboard</p>
+                </div>
               </div>
-              <div className="h-6 w-px bg-border/50" />
-              <div>
-                <p className="text-xs text-muted-foreground">Governance / Dashboard</p>
-                <p className="text-sm font-medium text-foreground">Main Dashboard</p>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 rounded-full border border-border/50 bg-secondary/50 px-3 py-1.5">
+                  <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-xs text-muted-foreground">Live</span>
+                </div>
+                <div className="h-8 w-8 rounded-full bg-secondary/80" />
               </div>
             </div>
             
             {/* Dashboard Content */}
-            <div className="grid grid-cols-12 gap-4 p-6">
+            <div className="grid grid-cols-12 gap-0">
               {/* Sidebar */}
-              <div className="col-span-3 space-y-1">
-                {["Dashboard", "Models", "Vendors", "Compliance"].map((item, i) => (
-                  <div 
-                    key={item}
-                    className={`rounded-lg px-4 py-2.5 text-sm transition-colors ${
-                      i === 0 
-                        ? "bg-secondary/80 text-foreground" 
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {item}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Main Content */}
-              <div className="col-span-6 space-y-4">
-                <div className="glass-strong rounded-xl p-6">
-                  <div className="mb-2 flex items-baseline justify-between">
-                    <span className="text-sm text-muted-foreground">Compliance Score</span>
-                    <div className="flex gap-2 text-xs text-muted-foreground">
-                      <span className="cursor-pointer hover:text-foreground">1D</span>
-                      <span className="cursor-pointer hover:text-foreground">7D</span>
-                      <span className="cursor-pointer hover:text-foreground">1M</span>
-                      <span className="rounded bg-secondary px-2 py-0.5 text-foreground">1Y</span>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-semibold text-foreground">94.7%</span>
-                    <span className="text-sm text-primary">+12.3%</span>
-                  </div>
-                  {/* Chart */}
-                  <div className="mt-4 h-32 w-full">
-                    <svg className="h-full w-full" viewBox="0 0 400 100" preserveAspectRatio="none">
-                      <defs>
-                        <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="hsl(160 84% 54%)" stopOpacity="0.3" />
-                          <stop offset="100%" stopColor="hsl(160 84% 54%)" stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
-                      <path
-                        d="M0,80 Q50,70 100,60 T200,50 T300,30 T400,20 L400,100 L0,100 Z"
-                        fill="url(#chartGradient)"
-                      />
-                      <path
-                        d="M0,80 Q50,70 100,60 T200,50 T300,30 T400,20"
-                        fill="none"
-                        stroke="hsl(160 84% 54%)"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                
-                {/* Stats row */}
-                <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-2 border-r border-border/50 bg-secondary/20 p-4">
+                <div className="space-y-1">
                   {[
-                    { label: "Models", value: "24" },
-                    { label: "Vendors", value: "12" },
-                    { label: "Incidents", value: "3" },
-                  ].map((stat) => (
-                    <div key={stat.label} className="glass rounded-xl p-4">
-                      <p className="text-sm text-muted-foreground">{stat.label}</p>
-                      <p className="text-2xl font-semibold text-foreground">{stat.value}</p>
+                    { name: "Dashboard", active: true },
+                    { name: "Models", active: false },
+                    { name: "Vendors", active: false },
+                    { name: "Compliance", active: false },
+                    { name: "Incidents", active: false },
+                    { name: "Reports", active: false },
+                  ].map((item) => (
+                    <div 
+                      key={item.name}
+                      className={`rounded-lg px-3 py-2 text-sm transition-colors ${
+                        item.active 
+                          ? "bg-primary/10 text-primary" 
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {item.name}
                     </div>
                   ))}
                 </div>
               </div>
               
-              {/* Right Panel */}
-              <div className="col-span-3 space-y-4">
-                <div className="glass-strong rounded-xl p-4">
-                  <p className="mb-4 font-medium text-foreground">Quick Audit</p>
-                  <div className="space-y-3">
-                    <div className="rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm text-muted-foreground">
-                      Select Model...
+              {/* Main Content */}
+              <div className="col-span-10 p-6">
+                {/* Stats Row */}
+                <div className="mb-6 grid grid-cols-4 gap-4">
+                  {[
+                    { label: "Total Models", value: "24", change: "+3", icon: Shield, color: "text-primary" },
+                    { label: "Active Vendors", value: "12", change: "+2", icon: CheckCircle, color: "text-emerald-400" },
+                    { label: "Open Incidents", value: "3", change: "-2", icon: AlertTriangle, color: "text-amber-400" },
+                    { label: "Compliance Score", value: "94.7%", change: "+5.2%", icon: Clock, color: "text-blue-400" },
+                  ].map((stat) => (
+                    <div key={stat.label} className="glass rounded-xl p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">{stat.label}</span>
+                        <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-semibold text-foreground">{stat.value}</span>
+                        <span className="text-xs text-primary">{stat.change}</span>
+                      </div>
                     </div>
-                    <div className="rounded-lg border border-border/50 bg-background/50 px-3 py-2 text-sm text-muted-foreground">
-                      Framework...
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Main Chart */}
+                  <div className="col-span-2 glass-strong rounded-xl p-5">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Compliance Trend</p>
+                        <p className="text-xs text-muted-foreground">Last 12 months</p>
+                      </div>
+                      <div className="flex gap-2 text-xs">
+                        <span className="rounded bg-secondary px-2 py-1 text-muted-foreground">1M</span>
+                        <span className="rounded bg-secondary px-2 py-1 text-muted-foreground">3M</span>
+                        <span className="rounded bg-primary/20 px-2 py-1 text-primary">1Y</span>
+                      </div>
                     </div>
-                    <Button className="w-full bg-secondary/80 text-foreground hover:bg-secondary">
-                      Run Audit →
-                    </Button>
+                    {/* Chart */}
+                    <div className="h-40 w-full">
+                      <svg className="h-full w-full" viewBox="0 0 500 120" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="hsl(160 84% 54%)" stopOpacity="0.3" />
+                            <stop offset="100%" stopColor="hsl(160 84% 54%)" stopOpacity="0" />
+                          </linearGradient>
+                        </defs>
+                        {/* Grid lines */}
+                        {[0, 30, 60, 90, 120].map((y) => (
+                          <line key={y} x1="0" y1={y} x2="500" y2={y} stroke="hsl(160 6% 15%)" strokeWidth="0.5" />
+                        ))}
+                        {/* Area fill */}
+                        <path
+                          d="M0,100 Q40,95 80,85 T160,75 T240,60 T320,50 T400,35 T500,25 L500,120 L0,120 Z"
+                          fill="url(#chartGradient)"
+                        />
+                        {/* Line */}
+                        <path
+                          d="M0,100 Q40,95 80,85 T160,75 T240,60 T320,50 T400,35 T500,25"
+                          fill="none"
+                          stroke="hsl(160 84% 54%)"
+                          strokeWidth="2"
+                        />
+                        {/* Data points */}
+                        {[
+                          { x: 0, y: 100 }, { x: 80, y: 85 }, { x: 160, y: 75 }, 
+                          { x: 240, y: 60 }, { x: 320, y: 50 }, { x: 400, y: 35 }, { x: 500, y: 25 }
+                        ].map((point, i) => (
+                          <circle key={i} cx={point.x} cy={point.y} r="3" fill="hsl(160 84% 54%)" />
+                        ))}
+                      </svg>
+                    </div>
+                    {/* X-axis labels */}
+                    <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                      <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span>
+                    </div>
+                  </div>
+
+                  {/* Right Panel */}
+                  <div className="space-y-4">
+                    {/* Model Status */}
+                    <div className="glass-strong rounded-xl p-4">
+                      <p className="mb-3 text-sm font-medium text-foreground">Model Status</p>
+                      <div className="space-y-2">
+                        {[
+                          { name: "GPT-4 Hiring", status: "Approved", color: "bg-emerald-500" },
+                          { name: "Resume Parser", status: "Pending", color: "bg-amber-500" },
+                          { name: "Salary Predictor", status: "Approved", color: "bg-emerald-500" },
+                        ].map((model) => (
+                          <div key={model.name} className="flex items-center justify-between rounded-lg border border-border/50 bg-background/50 px-3 py-2">
+                            <span className="text-xs text-foreground">{model.name}</span>
+                            <div className="flex items-center gap-1.5">
+                              <div className={`h-1.5 w-1.5 rounded-full ${model.color}`} />
+                              <span className="text-xs text-muted-foreground">{model.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Risk Distribution */}
+                    <div className="glass-strong rounded-xl p-4">
+                      <p className="mb-3 text-sm font-medium text-foreground">Risk Distribution</p>
+                      <div className="flex items-center justify-center">
+                        <svg className="h-24 w-24" viewBox="0 0 100 100">
+                          {/* Donut chart */}
+                          <circle cx="50" cy="50" r="40" fill="none" stroke="hsl(160 6% 15%)" strokeWidth="12" />
+                          <circle 
+                            cx="50" cy="50" r="40" fill="none" 
+                            stroke="hsl(160 84% 54%)" strokeWidth="12"
+                            strokeDasharray="176 251" strokeDashoffset="0"
+                            transform="rotate(-90 50 50)"
+                          />
+                          <circle 
+                            cx="50" cy="50" r="40" fill="none" 
+                            stroke="hsl(38 92% 50%)" strokeWidth="12"
+                            strokeDasharray="50 251" strokeDashoffset="-176"
+                            transform="rotate(-90 50 50)"
+                          />
+                          <circle 
+                            cx="50" cy="50" r="40" fill="none" 
+                            stroke="hsl(0 84% 60%)" strokeWidth="12"
+                            strokeDasharray="25 251" strokeDashoffset="-226"
+                            transform="rotate(-90 50 50)"
+                          />
+                        </svg>
+                      </div>
+                      <div className="mt-3 flex justify-center gap-4 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-2 w-2 rounded-full bg-primary" />
+                          <span className="text-muted-foreground">Low 70%</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-2 w-2 rounded-full bg-amber-500" />
+                          <span className="text-muted-foreground">Med 20%</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-2 w-2 rounded-full bg-destructive" />
+                          <span className="text-muted-foreground">High 10%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="mt-4 glass-strong rounded-xl p-4">
+                  <p className="mb-3 text-sm font-medium text-foreground">Recent Activity</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { action: "Audit completed", model: "GPT-4 Hiring", time: "2m ago", status: "success" },
+                      { action: "Model registered", model: "Resume Parser v2", time: "1h ago", status: "info" },
+                      { action: "Incident resolved", model: "Salary Predictor", time: "3h ago", status: "warning" },
+                    ].map((activity, i) => (
+                      <div key={i} className="flex items-center gap-3 rounded-lg border border-border/50 bg-background/50 px-3 py-2">
+                        <div className={`h-2 w-2 rounded-full ${
+                          activity.status === 'success' ? 'bg-emerald-500' :
+                          activity.status === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{activity.action}</p>
+                          <p className="text-xs text-muted-foreground truncate">{activity.model}</p>
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">{activity.time}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
