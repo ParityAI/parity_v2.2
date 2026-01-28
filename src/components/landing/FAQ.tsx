@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Plus } from "lucide-react";
+import { ArrowUpRight, Plus, Minus } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   Accordion,
@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useState } from "react";
 
 const faqs = [
   {
@@ -46,6 +47,32 @@ const faqs = [
 const leftColumn = faqs.slice(0, 4);
 const rightColumn = faqs.slice(4, 8);
 
+function FAQItem({ faq, value }: { faq: typeof faqs[0]; value: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <AccordionItem value={value} className="border-0 border-t border-border">
+      <AccordionTrigger 
+        className="flex items-center justify-between px-0 py-5 text-left hover:no-underline"
+        onClick={() => setIsOpen(!isOpen)}
+        hideIcon
+      >
+        <span className="pr-4 text-base font-normal text-foreground">{faq.question}</span>
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center">
+          {isOpen ? (
+            <Minus className="h-5 w-5 text-primary" />
+          ) : (
+            <Plus className="h-5 w-5 text-primary" />
+          )}
+        </div>
+      </AccordionTrigger>
+      <AccordionContent className="pb-5 pr-8 text-sm leading-relaxed text-muted-foreground">
+        {faq.answer}
+      </AccordionContent>
+    </AccordionItem>
+  );
+}
+
 export function FAQ() {
   return (
     <section id="faq" className="relative bg-background py-24">
@@ -79,35 +106,19 @@ export function FAQ() {
 
         <div className="grid gap-0 md:grid-cols-2">
           {/* Left Column */}
-          <div className="border-b border-r-0 border-border md:border-b-0 md:border-r">
-            <Accordion type="single" collapsible className="divide-y divide-border">
+          <div className="border-b border-border md:border-b-0 md:border-r md:pr-8">
+            <Accordion type="single" collapsible>
               {leftColumn.map((faq, index) => (
-                <AccordionItem key={index} value={`left-${index}`} className="border-0">
-                  <AccordionTrigger className="flex items-center justify-between px-0 py-6 text-left hover:no-underline [&[data-state=open]>svg]:rotate-45">
-                    <span className="pr-4 text-base text-foreground">{faq.question}</span>
-                    <Plus className="h-5 w-5 shrink-0 text-primary transition-transform duration-200" />
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6 pr-8 text-sm leading-relaxed text-muted-foreground">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
+                <FAQItem key={index} faq={faq} value={`left-${index}`} />
               ))}
             </Accordion>
           </div>
 
           {/* Right Column */}
-          <div>
-            <Accordion type="single" collapsible className="divide-y divide-border md:pl-8">
+          <div className="md:pl-8">
+            <Accordion type="single" collapsible>
               {rightColumn.map((faq, index) => (
-                <AccordionItem key={index} value={`right-${index}`} className="border-0">
-                  <AccordionTrigger className="flex items-center justify-between px-0 py-6 text-left hover:no-underline [&[data-state=open]>svg]:rotate-45">
-                    <span className="pr-4 text-base text-foreground">{faq.question}</span>
-                    <Plus className="h-5 w-5 shrink-0 text-primary transition-transform duration-200" />
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6 pr-8 text-sm leading-relaxed text-muted-foreground">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
+                <FAQItem key={index} faq={faq} value={`right-${index}`} />
               ))}
             </Accordion>
           </div>
