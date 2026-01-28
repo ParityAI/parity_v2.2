@@ -29,15 +29,27 @@ export function useNotifications() {
   return useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(50);
+      try {
+        const { data, error } = await supabase
+          .from("notifications")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(50);
 
-      if (error) throw error;
-      return data as Notification[];
+        if (error) {
+          // Return empty array if table doesn't exist
+          if (error.code === "42P01" || error.message.includes("does not exist")) {
+            return [];
+          }
+          throw error;
+        }
+        return data as Notification[];
+      } catch {
+        // Return empty array on any error
+        return [];
+      }
     },
+    retry: false,
   });
 }
 
@@ -45,14 +57,22 @@ export function useUnreadNotificationsCount() {
   return useQuery({
     queryKey: ["notifications-unread-count"],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("is_read", false);
+      try {
+        const { count, error } = await supabase
+          .from("notifications")
+          .select("*", { count: "exact", head: true })
+          .eq("is_read", false);
 
-      if (error) throw error;
-      return count || 0;
+        if (error) {
+          // Return 0 if table doesn't exist
+          return 0;
+        }
+        return count || 0;
+      } catch {
+        return 0;
+      }
     },
+    retry: false,
   });
 }
 
@@ -110,36 +130,42 @@ export function useDeleteNotification() {
   });
 }
 
-// Real-time subscription hook
+// Real-time subscription hook - only subscribes if table exists
 export function useNotificationsRealtime() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const channel = supabase
-      .channel("notifications-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-        },
-        (payload) => {
-          // Invalidate queries to refetch
-          queryClient.invalidateQueries({ queryKey: ["notifications"] });
-          queryClient.invalidateQueries({ queryKey: ["notifications-unread-count"] });
+    // Try to subscribe, but don't fail if table doesn't exist
+    try {
+      const channel = supabase
+        .channel("notifications-changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+          },
+          (payload) => {
+            // Invalidate queries to refetch
+            queryClient.invalidateQueries({ queryKey: ["notifications"] });
+            queryClient.invalidateQueries({ queryKey: ["notifications-unread-count"] });
 
-          // Show toast for new notification
-          const notification = payload.new as Notification;
-          toast(notification.title, {
-            description: notification.message || undefined,
-          });
-        }
-      )
-      .subscribe();
+            // Show toast for new notification
+            const notification = payload.new as Notification;
+            toast(notification.title, {
+              description: notification.message || undefined,
+            });
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } catch {
+      // Silently fail if subscription fails
+      return () => {};
+    }
   }, [queryClient]);
 }
