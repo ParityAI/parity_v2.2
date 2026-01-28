@@ -73,6 +73,22 @@ export function useFrameworkChecklists(frameworkId: string | null) {
   });
 }
 
+export function useAllFrameworkChecklists() {
+  return useQuery({
+    queryKey: ["all-framework-checklists"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("framework_checklists")
+        .select("*")
+        .order("framework_id", { ascending: true })
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      return data as FrameworkChecklist[];
+    },
+  });
+}
+
 export function useComplianceAssessments() {
   return useQuery({
     queryKey: ["compliance-assessments"],
