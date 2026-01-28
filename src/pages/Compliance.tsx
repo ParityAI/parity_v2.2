@@ -1,26 +1,65 @@
 import { useState, useMemo } from "react";
 import { isPast } from "date-fns";
-import { FileDown } from "lucide-react";
+import { FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useComplianceFrameworks,
   useFrameworkChecklists,
   useComplianceAssessments,
+  useAllFrameworkChecklists,
 } from "@/hooks/useCompliance";
 import { ComplianceStats } from "@/components/compliance/ComplianceStats";
 import { ComplianceFilters } from "@/components/compliance/ComplianceFilters";
 import { FrameworkCard } from "@/components/compliance/FrameworkCard";
+import { generateComplianceReport } from "@/lib/generateComplianceReport";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Compliance() {
   const { data: frameworks, isLoading: frameworksLoading } = useComplianceFrameworks();
   const { data: assessments, isLoading: assessmentsLoading } = useComplianceAssessments();
+  const { data: allChecklists } = useAllFrameworkChecklists();
   const [selectedFramework, setSelectedFramework] = useState<string | null>(null);
   const { data: checklists } = useFrameworkChecklists(selectedFramework);
+  const { toast } = useToast();
+  const [isExporting, setIsExporting] = useState(false);
 
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const handleExportReport = async () => {
+    if (!frameworks || !assessments || !allChecklists) {
+      toast({
+        title: "Unable to export",
+        description: "Please wait for data to load before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      generateComplianceReport({
+        frameworks,
+        assessments,
+        checklists: allChecklists,
+        organizationName: "FairHire AI - HR Governance",
+      });
+      toast({
+        title: "Report exported",
+        description: "Your compliance report has been downloaded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "There was an error generating the report.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Map assessments by framework_id for quick lookup
   const assessmentMap = useMemo(() => {
@@ -79,8 +118,7 @@ export default function Compliance() {
     });
   }, [frameworks, search, regionFilter, statusFilter, assessmentMap]);
 
-  // Get checklists for all frameworks (for expanded view)
-  const [allChecklists, setAllChecklists] = useState<Map<string, any[]>>(new Map());
+  // Get checklists for all frameworks (for expanded view) - removed unused state
 
   const handleSelectFramework = async (frameworkId: string) => {
     setSelectedFramework(frameworkId);
@@ -121,8 +159,12 @@ export default function Compliance() {
             Track compliance across multiple regulatory frameworks and standards
           </p>
         </div>
-        <Button variant="outline" className="gap-2">
-          <FileDown className="h-4 w-4" />
+        <Button variant="outline" className="gap-2" onClick={handleExportReport} disabled={isExporting}>
+          {isExporting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FileDown className="h-4 w-4" />
+          )}
           Export Report
         </Button>
       </div>
