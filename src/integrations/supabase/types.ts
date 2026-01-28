@@ -59,7 +59,9 @@ export type Database = {
         Row: {
           assessed_at: string | null
           assessed_by: string | null
+          checklist_progress: Json | null
           created_at: string
+          deadline: string | null
           framework_id: string | null
           id: string
           model_id: string | null
@@ -72,7 +74,9 @@ export type Database = {
         Insert: {
           assessed_at?: string | null
           assessed_by?: string | null
+          checklist_progress?: Json | null
           created_at?: string
+          deadline?: string | null
           framework_id?: string | null
           id?: string
           model_id?: string | null
@@ -85,7 +89,9 @@ export type Database = {
         Update: {
           assessed_at?: string | null
           assessed_by?: string | null
+          checklist_progress?: Json | null
           created_at?: string
+          deadline?: string | null
           framework_id?: string | null
           id?: string
           model_id?: string | null
@@ -148,6 +154,41 @@ export type Database = {
           short_name?: string
         }
         Relationships: []
+      }
+      framework_checklists: {
+        Row: {
+          category: string | null
+          created_at: string
+          framework_id: string
+          id: string
+          item_text: string
+          sort_order: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          framework_id: string
+          id?: string
+          item_text: string
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          framework_id?: string
+          id?: string
+          item_text?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "framework_checklists_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_frameworks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       incidents: {
         Row: {

@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
 import Models from "./pages/Models";
+import Compliance from "./pages/Compliance";
 import { AppLayout } from "./components/layout/AppLayout";
 import {
   Tasks,
@@ -16,7 +17,6 @@ import {
   Vendors,
   Risks,
   BiasMetrics,
-  Compliance,
   Evidence,
   Reporting,
   Policies,
