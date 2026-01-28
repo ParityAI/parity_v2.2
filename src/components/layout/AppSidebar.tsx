@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -23,10 +23,13 @@ import {
   Menu,
   Eye,
   Settings,
+  Lock,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
   SidebarContent,
@@ -83,7 +86,7 @@ const assuranceNav = [
 const governanceNav = [
   { name: "Policy Manager", icon: FileText, href: "/policies" },
   { name: "Incidents", icon: AlertCircle, href: "/incidents" },
-  { name: "User Management", icon: Users, href: "/settings/users" },
+  { name: "User Management", icon: Users, href: "/settings/users", adminOnly: true },
 ];
 
 export function AppSidebar() {
@@ -93,6 +96,19 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState(products[0]);
+  const { data: currentUser } = useCurrentUser();
+
+  const userRole = currentUser?.role || "user";
+  const isAdmin = userRole === "admin";
+  const isViewer = userRole === "viewer";
+
+  // Filter governance nav based on user role
+  const filteredGovernanceNav = useMemo(() => {
+    return governanceNav.filter(item => {
+      if (item.adminOnly && !isAdmin) return false;
+      return true;
+    });
+  }, [isAdmin]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -194,7 +210,7 @@ export function AppSidebar() {
         <SidebarGroup>
           {!collapsed && <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground">GOVERNANCE</SidebarGroupLabel>}
           <SidebarGroupContent>
-            <SidebarMenu>{governanceNav.map(renderNavItem)}</SidebarMenu>
+            <SidebarMenu>{filteredGovernanceNav.map(renderNavItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
@@ -207,10 +223,22 @@ export function AppSidebar() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent">
                   <User className="h-4 w-4" />
                 </div>
-                {!collapsed && <span className="text-sm">Account</span>}
+                {!collapsed && (
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm">{currentUser?.full_name || "Account"}</span>
+                    <Badge variant="outline" className="text-[10px] px-1 py-0">
+                      {userRole}
+                    </Badge>
+                  </div>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56 bg-popover">
+              <div className="px-2 py-1.5 text-sm font-medium">
+                {currentUser?.full_name || "User"}
+                <div className="text-xs text-muted-foreground capitalize">Role: {userRole}</div>
+              </div>
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
                 Profile

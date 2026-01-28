@@ -105,6 +105,8 @@ const Auth = () => {
     } else if (data.user) {
       // Create profile with demo organization for new users
       const demoOrgId = "00000000-0000-0000-0000-000000000001";
+
+      // Create the profile
       const { error: profileError } = await supabase.from("profiles").insert({
         user_id: data.user.id,
         organization_id: demoOrgId,
@@ -113,6 +115,16 @@ const Auth = () => {
 
       if (profileError) {
         console.error("Failed to create profile:", profileError);
+      }
+
+      // All new users get "user" role - admin must be assigned manually
+      const { error: roleError } = await supabase.from("user_roles").insert({
+        user_id: data.user.id,
+        role: "user",
+      });
+
+      if (roleError) {
+        console.error("Failed to assign role:", roleError);
       }
 
       toast({
