@@ -1,73 +1,175 @@
-# Welcome to your Lovable project
+# Parity AI — AI Governance & Compliance Platform
 
-## Project info
+An enterprise-grade platform for AI governance, bias testing, and regulatory compliance monitoring. **FairHire AI** (HR/Hiring) is the flagship product, with MedParity, FinParity, ContentGuard, and Enterprise modules on the roadmap.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+### Dashboard
+- Real-time KPI statistics (models, vendors, incidents, compliance score, evidence coverage)
+- Risk distribution and incident status charts (Recharts)
+- Task radar for compliance deadline tracking
+- Recent models, incidents, and audit activity feed
+- Live updates via Supabase real-time subscriptions
 
-There are several ways of editing your application.
+### Model Inventory
+- Full CRUD for AI model registration
+- Status tracking: Approved, Restricted, Pending, Blocked
+- Risk level classification: High, Medium, Low
+- Vendor association and security assessment tracking
+- Filterable, searchable data table
 
-**Use Lovable**
+### Vendor Management
+- Full CRUD for third-party AI vendor registry
+- Risk score assessment (0-100 scale)
+- Security assessment tracking
+- Contact and website management
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### Incident Management
+- Full CRUD for incident reporting and resolution
+- Severity levels: Critical, High, Medium, Low
+- Status workflow: Open → Investigating → Mitigated → Closed
+- Model and vendor linking
+- Investigation and resolution notes
+- Assignment tracking
 
-Changes made via Lovable will be committed automatically to this repo.
+### Compliance Frameworks
+- Multi-framework support (NYC LL144, EU AI Act, Colorado AI Act, Illinois AIVOIA, ISO 42001, NIST AI RMF)
+- Per-framework interactive checklists
+- Deadline tracking with overdue warnings
+- Assessment scoring and status management
+- PDF compliance report export
 
-**Use your preferred IDE**
+### Authentication & Security
+- Supabase-powered email/password authentication
+- Row-Level Security (RLS) on all tables
+- Organization-scoped data isolation
+- Role-based access control (Admin, User, Viewer)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Tech Stack
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | React 18 + TypeScript |
+| **Build** | Vite 5 |
+| **Styling** | Tailwind CSS 3 + shadcn/ui (Radix primitives) |
+| **State** | TanStack React Query 5 |
+| **Backend** | Supabase (PostgreSQL + Auth + Realtime) |
+| **Charts** | Recharts |
+| **Animations** | Framer Motion |
+| **Forms** | React Hook Form + Zod validation |
+| **PDF Export** | jsPDF + jsPDF-AutoTable |
+| **Testing** | Vitest + Testing Library |
 
-Follow these steps:
+## Getting Started
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Prerequisites
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- Node.js 18+ and npm
+- A Supabase project (free tier works)
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Installation
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+# Clone the repository
+git clone https://github.com/m-zest/clarity-dashboard.git
+cd clarity-dashboard
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your Supabase credentials:
+#   VITE_SUPABASE_URL=https://your-project.supabase.co
+#   VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+
+# Run database migrations
+npx supabase db push
+
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:8080`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Scripts
 
-**Use GitHub Codespaces**
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server (port 8080) |
+| `npm run build` | Production build |
+| `npm run build:dev` | Development build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run tests |
+| `npm run test:watch` | Watch mode tests |
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+```
+src/
+├── components/
+│   ├── compliance/      # Compliance framework components
+│   ├── dashboard/       # Dashboard widgets and charts
+│   ├── incidents/       # Incident management components
+│   ├── landing/         # Landing page sections
+│   ├── layout/          # App layout and sidebar
+│   ├── models/          # Model inventory components
+│   ├── ui/              # shadcn/ui base components
+│   └── vendors/         # Vendor management components
+├── hooks/               # React Query data hooks (CRUD operations)
+├── integrations/
+│   └── supabase/        # Supabase client and generated types
+├── lib/                 # Utilities (cn, PDF generation)
+├── pages/               # Route page components
+└── test/                # Test setup and specs
+```
 
-This project is built with:
+Each feature directory contains its own `README.md` with detailed documentation.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Database Schema
 
-## How can I deploy this project?
+9 tables with Row-Level Security:
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+- **organizations** — Company accounts
+- **profiles** — User profiles linked to auth
+- **user_roles** — Role-based access (admin, user, viewer)
+- **models** — AI model registry
+- **vendors** — Third-party vendor registry
+- **incidents** — Incident tracking and resolution
+- **compliance_frameworks** — Regulatory framework definitions
+- **compliance_assessments** — Per-model framework assessments
+- **framework_checklists** — Checklist items per framework
+- **audit_logs** — Activity audit trail
 
-## Can I connect a custom domain to my Lovable project?
+Migrations are in `supabase/migrations/`.
 
-Yes, you can!
+## Routes
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+| Route | Page | Auth Required |
+|-------|------|:---:|
+| `/` | Landing page | No |
+| `/auth` | Sign in / Sign up | No |
+| `/dashboard` | Main dashboard | Yes |
+| `/models` | Model inventory | Yes |
+| `/vendors` | Vendor management | Yes |
+| `/incidents` | Incident management | Yes |
+| `/compliance` | Compliance frameworks | Yes |
+| `/products/:id` | Coming soon pages | No |
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Roadmap
+
+- [ ] Bias & Fairness metrics (Adverse Impact Ratio, Demographic Parity, Selection Rate)
+- [ ] Task management with assignees and due dates
+- [ ] Risk Management dedicated page
+- [ ] Use Cases registry
+- [ ] Evidence Hub for documentation
+- [ ] Reporting engine
+- [ ] Policy Manager
+- [ ] Model detail pages with assessment history
+- [ ] Vendor documentation attachments
+- [ ] Operations vs Executive dashboard toggle
+
+## License
+
+Private — All rights reserved.
