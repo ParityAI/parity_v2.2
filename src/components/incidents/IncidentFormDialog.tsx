@@ -43,8 +43,6 @@ const incidentSchema = z.object({
   status: z.enum(["open", "investigating", "mitigated", "closed"]),
   model_id: z.string().optional(),
   vendor_id: z.string().optional(),
-  reported_by: z.string().optional(),
-  assigned_to: z.string().optional(),
   investigation_notes: z.string().optional(),
   resolution_notes: z.string().optional(),
 });
@@ -73,8 +71,6 @@ export function IncidentFormDialog({ open, onOpenChange, incident }: IncidentFor
       status: "open",
       model_id: "",
       vendor_id: "",
-      reported_by: "",
-      assigned_to: "",
       investigation_notes: "",
       resolution_notes: "",
     },
@@ -89,8 +85,6 @@ export function IncidentFormDialog({ open, onOpenChange, incident }: IncidentFor
         status: incident.status,
         model_id: incident.model_id || "",
         vendor_id: incident.vendor_id || "",
-        reported_by: incident.reported_by || "",
-        assigned_to: incident.assigned_to || "",
         investigation_notes: incident.investigation_notes || "",
         resolution_notes: incident.resolution_notes || "",
       });
@@ -102,8 +96,6 @@ export function IncidentFormDialog({ open, onOpenChange, incident }: IncidentFor
         status: "open",
         model_id: "",
         vendor_id: "",
-        reported_by: "",
-        assigned_to: "",
         investigation_notes: "",
         resolution_notes: "",
       });
@@ -111,6 +103,8 @@ export function IncidentFormDialog({ open, onOpenChange, incident }: IncidentFor
   }, [incident, form]);
 
   const onSubmit = async (values: IncidentFormValues) => {
+    // Note: reported_by and assigned_to are UUID fields in the database
+    // that reference user profiles. For now, we omit them from the submission.
     const data = {
       title: values.title,
       description: values.description || null,
@@ -118,8 +112,6 @@ export function IncidentFormDialog({ open, onOpenChange, incident }: IncidentFor
       status: values.status as "open" | "investigating" | "mitigated" | "closed",
       model_id: values.model_id || null,
       vendor_id: values.vendor_id || null,
-      reported_by: values.reported_by || null,
-      assigned_to: values.assigned_to || null,
       investigation_notes: values.investigation_notes || null,
       resolution_notes: values.resolution_notes || null,
       resolved_at: values.status === "closed" ? new Date().toISOString() : null,
@@ -274,34 +266,6 @@ export function IncidentFormDialog({ open, onOpenChange, incident }: IncidentFor
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="reported_by"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Reported By</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="assigned_to"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assigned To</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Jane Smith" {...field} />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

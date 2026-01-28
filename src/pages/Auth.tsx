@@ -79,8 +79,8 @@ const Auth = () => {
 
     setLoading(true);
     const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -102,7 +102,19 @@ const Auth = () => {
           description: error.message,
         });
       }
-    } else {
+    } else if (data.user) {
+      // Create profile with demo organization for new users
+      const demoOrgId = "00000000-0000-0000-0000-000000000001";
+      const { error: profileError } = await supabase.from("profiles").insert({
+        user_id: data.user.id,
+        organization_id: demoOrgId,
+        full_name: email.split("@")[0],
+      });
+
+      if (profileError) {
+        console.error("Failed to create profile:", profileError);
+      }
+
       toast({
         title: "Account created",
         description: "You can now sign in with your credentials.",
