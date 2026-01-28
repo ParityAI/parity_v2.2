@@ -21,8 +21,8 @@ import {
   Evidence,
   Reporting,
   Policies,
-  Incidents,
 } from "./pages/placeholders";
+import Incidents from "./pages/Incidents";
 
 const queryClient = new QueryClient();
 
