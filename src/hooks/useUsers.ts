@@ -45,8 +45,8 @@ export function useUsers() {
           return [];
         }
 
-        // Get all profiles in the same organization with their roles
-        const { data, error } = await supabase
+        // Get all profiles in the same organization
+        const { data: profiles, error } = await supabase
           .from("profiles")
           .select(`
             id,
@@ -55,8 +55,7 @@ export function useUsers() {
             avatar_url,
             organization_id,
             created_at,
-            updated_at,
-            user_roles (role)
+            updated_at
           `)
           .eq("organization_id", currentProfile.organization_id)
           .order("created_at", { ascending: false });
@@ -66,7 +65,26 @@ export function useUsers() {
           throw error;
         }
 
-        return (data || []) as UserProfile[];
+        if (!profiles || profiles.length === 0) {
+          return [];
+        }
+
+        // Get roles for all users separately
+        const userIds = profiles.map(p => p.user_id);
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", userIds);
+
+        // Map roles to profiles
+        const rolesMap = new Map(roles?.map(r => [r.user_id, r.role]) || []);
+
+        return profiles.map(profile => ({
+          ...profile,
+          user_roles: rolesMap.has(profile.user_id)
+            ? [{ role: rolesMap.get(profile.user_id) as UserRole }]
+            : [{ role: "user" as UserRole }],
+        })) as UserProfile[];
       } catch (error) {
         console.error("useUsers error:", error);
         return [];
@@ -76,37 +94,51 @@ export function useUsers() {
   });
 }
 
-export function useCurrentUser() {
+export function useCurrentUserProfile() {
   return useQuery({
-    queryKey: ["current-user"],
+    queryKey: ["current-user-profile"],
     queryFn: async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return null;
 
-        const { data, error } = await supabase
-          .from("profiles")
-          .select(`
-            id,
-            user_id,
-            full_name,
-            avatar_url,
-            organization_id,
-            created_at,
-            updated_at,
-            user_roles (role)
-          `)
-          .eq("user_id", user.id)
-          .single();
+        // Query profile and role separately
+        const [profileResult, roleResult] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select(`
+              id,
+              user_id,
+              full_name,
+              avatar_url,
+              organization_id,
+              created_at,
+              updated_at
+            `)
+            .eq("user_id", user.id)
+            .single(),
+          supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .single()
+        ]);
 
-        if (error) {
-          console.error("Current user error:", error);
+        if (profileResult.error) {
+          console.error("Current user error:", profileResult.error);
           return null;
         }
 
-        return { ...data, email: user.email } as UserProfile;
+        const profile = profileResult.data;
+        const role = roleResult.data?.role || "user";
+
+        return {
+          ...profile,
+          email: user.email,
+          user_roles: [{ role: role as UserRole }],
+        } as UserProfile;
       } catch (error) {
-        console.error("useCurrentUser error:", error);
+        console.error("useCurrentUserProfile error:", error);
         return null;
       }
     },
