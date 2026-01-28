@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Upload, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useModels, Model } from "@/hooks/useModels";
 import { ModelsTable } from "@/components/models/ModelsTable";
@@ -7,6 +7,8 @@ import { ModelsFilters } from "@/components/models/ModelsFilters";
 import { ModelsStats } from "@/components/models/ModelsStats";
 import { ModelFormDialog } from "@/components/models/ModelFormDialog";
 import { ModelDeleteDialog } from "@/components/models/ModelDeleteDialog";
+import { CSVUploadDialog } from "@/components/models/CSVUploadDialog";
+import { generateModelsReport } from "@/lib/generateModelsReport";
 
 export default function Models() {
   const { data: models, isLoading } = useModels();
@@ -15,7 +17,14 @@ export default function Models() {
   const [riskFilter, setRiskFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [csvUploadOpen, setCsvUploadOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+
+  const handleExportPDF = () => {
+    if (models) {
+      generateModelsReport({ models });
+    }
+  };
 
   const filteredModels = useMemo(() => {
     if (!models) return [];
@@ -58,10 +67,20 @@ export default function Models() {
             Track and manage all AI models in your organization
           </p>
         </div>
-        <Button onClick={handleAddNew} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Model
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setCsvUploadOpen(true)} className="gap-2">
+            <Upload className="h-4 w-4" />
+            Import CSV
+          </Button>
+          <Button variant="outline" onClick={handleExportPDF} disabled={!models?.length} className="gap-2">
+            <FileDown className="h-4 w-4" />
+            Export PDF
+          </Button>
+          <Button onClick={handleAddNew} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Model
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -95,6 +114,10 @@ export default function Models() {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         model={selectedModel}
+      />
+      <CSVUploadDialog
+        open={csvUploadOpen}
+        onOpenChange={setCsvUploadOpen}
       />
     </div>
   );
