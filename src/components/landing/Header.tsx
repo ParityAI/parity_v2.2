@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Menu, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
   { label: "Why Parity?", href: "#why-parity" },
@@ -28,7 +29,7 @@ export function Header() {
     <header 
       className={`fixed top-0 z-50 w-full transition-all duration-300 ${
         isScrolled 
-          ? "border-b border-border/40 bg-background/60 backdrop-blur-2xl" 
+          ? "border-b border-border/40 bg-background/80 backdrop-blur-2xl" 
           : "bg-transparent"
       }`}
     >
@@ -54,11 +55,12 @@ export function Header() {
           ))}
         </nav>
 
-        {/* CTA Button */}
-        <div className="hidden md:block">
+        {/* CTA Button & Theme Toggle */}
+        <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           <Link to="/auth">
             <Button 
-              className="rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_0_20px_-4px_hsl(160_84%_54%/0.4)]"
+              className="rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
             >
               Get Started
             </Button>
@@ -66,33 +68,36 @@ export function Header() {
         </div>
 
         {/* Mobile Menu */}
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="text-foreground">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-[280px] border-border/50 bg-background/95 backdrop-blur-2xl">
-            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-            <nav className="mt-8 flex flex-col gap-4">
-              {navItems.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="text-lg text-muted-foreground transition-colors hover:text-foreground"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.label}
-                </a>
-              ))}
-              <Link to="/auth" onClick={() => setIsOpen(false)}>
-                <Button className="mt-4 w-full rounded-full bg-primary text-primary-foreground">
-                  Get Started
-                </Button>
-              </Link>
-            </nav>
-          </SheetContent>
-        </Sheet>
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-foreground">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[280px] border-border/50 bg-background/95 backdrop-blur-2xl">
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <nav className="mt-8 flex flex-col gap-4">
+                {navItems.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className="text-lg text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+                <Link to="/auth" onClick={() => setIsOpen(false)}>
+                  <Button className="mt-4 w-full rounded-full bg-primary text-primary-foreground">
+                    Get Started
+                  </Button>
+                </Link>
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );
