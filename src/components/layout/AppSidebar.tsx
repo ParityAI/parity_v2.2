@@ -21,6 +21,7 @@ import {
   DollarSign,
   Tv,
   Menu,
+  Eye,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,6 +76,7 @@ const assuranceNav = [
   { name: "Compliance", icon: Shield, href: "/compliance" },
   { name: "Evidence Hub", icon: FileArchive, href: "/evidence" },
   { name: "Reporting", icon: BarChart3, href: "/reporting" },
+  { name: "AI Trust Center", icon: Eye, href: "/transparency" },
 ];
 
 const governanceNav = [

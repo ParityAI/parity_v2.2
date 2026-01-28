@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Database, Building2, AlertCircle, TrendingUp } from "lucide-react";
+import { Database, Building2, AlertCircle, TrendingUp, FileCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardStatsProps {
@@ -9,6 +9,7 @@ interface DashboardStatsProps {
     openIncidents: number;
     criticalIncidents: number;
     complianceScore: number;
+    evidenceCoverage: number;
   } | undefined;
   isLoading: boolean;
 }
@@ -33,18 +34,24 @@ export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
       icon: AlertCircle, 
       change: stats?.criticalIncidents ? `${stats.criticalIncidents} critical` : "None critical"
     },
-    { 
-      label: "Compliance Score", 
-      value: `${stats?.complianceScore || 0}%`, 
-      icon: TrendingUp, 
+    {
+      label: "Compliance Score",
+      value: `${stats?.complianceScore || 0}%`,
+      icon: TrendingUp,
       change: stats?.complianceScore ? "Based on assessments" : "No assessments yet"
+    },
+    {
+      label: "Evidence Coverage",
+      value: `${stats?.evidenceCoverage || 0}%`,
+      icon: FileCheck,
+      change: stats?.evidenceCoverage ? "Models with security docs" : "No assessments yet"
     },
   ];
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        {[...Array(5)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <Skeleton className="h-4 w-20" />
@@ -61,7 +68,7 @@ export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       {statItems.map((stat) => (
         <Card key={stat.label}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">

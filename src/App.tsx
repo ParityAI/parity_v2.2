@@ -13,16 +13,15 @@ import Models from "./pages/Models";
 import Compliance from "./pages/Compliance";
 import Vendors from "./pages/Vendors";
 import { AppLayout } from "./components/layout/AppLayout";
-import {
-  Tasks,
-  UseCases,
-  Risks,
-  BiasMetrics,
-  Evidence,
-  Reporting,
-  Policies,
-  Incidents,
-} from "./pages/placeholders";
+import Tasks from "./pages/Tasks";
+import UseCases from "./pages/UseCases";
+import Risks from "./pages/Risks";
+import BiasMetrics from "./pages/BiasMetrics";
+import Evidence from "./pages/Evidence";
+import Reporting from "./pages/Reporting";
+import Policies from "./pages/Policies";
+import Transparency from "./pages/Transparency";
+import Incidents from "./pages/Incidents";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +52,7 @@ const App = () => (
               <Route path="/reporting" element={<Reporting />} />
               <Route path="/policies" element={<Policies />} />
               <Route path="/incidents" element={<Incidents />} />
+              <Route path="/transparency" element={<Transparency />} />
             </Route>
 
             {/* Catch-all */}

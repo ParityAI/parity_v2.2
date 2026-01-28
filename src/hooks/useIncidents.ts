@@ -3,18 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
-export type Vendor = Tables<"vendors">;
-export type VendorInsert = TablesInsert<"vendors">;
-export type VendorUpdate = TablesUpdate<"vendors">;
+export type Incident = Tables<"incidents">;
+export type IncidentInsert = TablesInsert<"incidents">;
+export type IncidentUpdate = TablesUpdate<"incidents">;
 
-export function useVendors() {
+export function useIncidents() {
   return useQuery({
-    queryKey: ["vendors"],
+    queryKey: ["incidents"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("vendors")
-        .select("*")
-        .order("name", { ascending: true });
+        .from("incidents")
+        .select("*, models(name), vendors(name)")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
@@ -22,21 +22,20 @@ export function useVendors() {
   });
 }
 
-export function useCreateVendor() {
+export function useCreateIncident() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (vendor: Omit<VendorInsert, "id" | "created_at" | "updated_at" | "organization_id">) => {
-      // Fetch user's organization_id from their profile
+    mutationFn: async (incident: Omit<IncidentInsert, "id" | "created_at" | "updated_at">) => {
       const { data: profile } = await supabase
         .from("profiles")
         .select("organization_id")
         .single();
 
       const { data, error } = await supabase
-        .from("vendors")
-        .insert({ ...vendor, organization_id: profile?.organization_id })
+        .from("incidents")
+        .insert({ ...incident, organization_id: profile?.organization_id })
         .select()
         .single();
 
@@ -44,16 +43,17 @@ export function useCreateVendor() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-activity"] });
       toast({
-        title: "Vendor created",
-        description: "The vendor has been added successfully.",
+        title: "Incident created",
+        description: "The incident has been reported successfully.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Error creating vendor",
+        title: "Error creating incident",
         description: error.message,
         variant: "destructive",
       });
@@ -61,14 +61,14 @@ export function useCreateVendor() {
   });
 }
 
-export function useUpdateVendor() {
+export function useUpdateIncident() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: VendorUpdate & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: IncidentUpdate & { id: string }) => {
       const { data, error } = await supabase
-        .from("vendors")
+        .from("incidents")
         .update(updates)
         .eq("id", id)
         .select()
@@ -78,16 +78,17 @@ export function useUpdateVendor() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-activity"] });
       toast({
-        title: "Vendor updated",
-        description: "The vendor has been updated successfully.",
+        title: "Incident updated",
+        description: "The incident has been updated successfully.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Error updating vendor",
+        title: "Error updating incident",
         description: error.message,
         variant: "destructive",
       });
@@ -95,26 +96,27 @@ export function useUpdateVendor() {
   });
 }
 
-export function useDeleteVendor() {
+export function useDeleteIncident() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("vendors").delete().eq("id", id);
+      const { error } = await supabase.from("incidents").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["incidents"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-activity"] });
       toast({
-        title: "Vendor deleted",
-        description: "The vendor has been removed successfully.",
+        title: "Incident deleted",
+        description: "The incident has been removed successfully.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Error deleting vendor",
+        title: "Error deleting incident",
         description: error.message,
         variant: "destructive",
       });

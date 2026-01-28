@@ -48,7 +48,7 @@ export function useDashboardStats() {
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const [modelsRes, vendorsRes, incidentsRes, assessmentsRes] = await Promise.all([
-        supabase.from("models").select("id, status, risk_level, name, created_at"),
+        supabase.from("models").select("id, status, risk_level, name, created_at, security_assessment"),
         supabase.from("vendors").select("id, name, risk_score"),
         supabase.from("incidents").select("id, status, severity, title, created_at"),
         supabase.from("compliance_assessments").select("id, status, deadline, framework_id"),
@@ -122,6 +122,12 @@ export function useDashboardStats() {
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
 
+      // Evidence coverage: % of models with security assessment completed
+      const assessedModels = models.filter(m => m.security_assessment === true).length;
+      const evidenceCoverage = models.length > 0
+        ? Math.round((assessedModels / models.length) * 100)
+        : 0;
+
       return {
         stats: {
           totalModels: models.length,
@@ -129,6 +135,7 @@ export function useDashboardStats() {
           openIncidents: openIncidents.length,
           criticalIncidents,
           complianceScore,
+          evidenceCoverage,
         },
         riskDistribution,
         incidentData,

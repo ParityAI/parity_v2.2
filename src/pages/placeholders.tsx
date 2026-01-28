@@ -16,4 +16,3 @@ export const BiasMetrics = () => <Placeholder title="Bias & Fairness" />;
 export const Evidence = () => <Placeholder title="Evidence Hub" />;
 export const Reporting = () => <Placeholder title="Reporting" />;
 export const Policies = () => <Placeholder title="Policy Manager" />;
-export const Incidents = () => <Placeholder title="Incident Management" />;

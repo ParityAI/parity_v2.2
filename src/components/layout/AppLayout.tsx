@@ -11,20 +11,22 @@ export function AppLayout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      if (!session) {
-        navigate("/auth");
-      }
-      setLoading(false);
-    });
-
+    // First, get the current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (!session) {
-        navigate("/auth");
-      }
       setLoading(false);
+      if (!session) {
+        navigate("/auth", { replace: true });
+      }
+    });
+
+    // Then subscribe to auth changes for sign-out events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      // Only redirect on explicit sign-out, not on initial load
+      if (event === "SIGNED_OUT") {
+        navigate("/auth", { replace: true });
+      }
     });
 
     return () => subscription.unsubscribe();

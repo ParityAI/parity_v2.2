@@ -1,12 +1,14 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Upload, FileDown } from "lucide-react";
 import { useVendors, Vendor } from "@/hooks/useVendors";
 import { VendorsStats } from "@/components/vendors/VendorsStats";
 import { VendorsFilters } from "@/components/vendors/VendorsFilters";
 import { VendorsTable } from "@/components/vendors/VendorsTable";
 import { VendorFormDialog } from "@/components/vendors/VendorFormDialog";
 import { VendorDeleteDialog } from "@/components/vendors/VendorDeleteDialog";
+import { CSVUploadDialog } from "@/components/vendors/CSVUploadDialog";
+import { generateVendorsReport } from "@/lib/generateVendorsReport";
 
 const Vendors = () => {
   const { data: vendors, isLoading } = useVendors();
@@ -15,7 +17,14 @@ const Vendors = () => {
   const [assessmentFilter, setAssessmentFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [csvUploadOpen, setCsvUploadOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+
+  const handleExportPDF = () => {
+    if (vendors) {
+      generateVendorsReport({ vendors });
+    }
+  };
 
   const filteredVendors = useMemo(() => {
     if (!vendors) return [];
@@ -80,10 +89,20 @@ const Vendors = () => {
             Manage and track your third-party AI vendors
           </p>
         </div>
-        <Button onClick={handleAddNew}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Vendor
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setCsvUploadOpen(true)} className="gap-2">
+            <Upload className="h-4 w-4" />
+            Import CSV
+          </Button>
+          <Button variant="outline" onClick={handleExportPDF} disabled={!vendors?.length} className="gap-2">
+            <FileDown className="h-4 w-4" />
+            Export PDF
+          </Button>
+          <Button onClick={handleAddNew}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Vendor
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -117,6 +136,10 @@ const Vendors = () => {
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         vendor={selectedVendor}
+      />
+      <CSVUploadDialog
+        open={csvUploadOpen}
+        onOpenChange={setCsvUploadOpen}
       />
     </div>
   );

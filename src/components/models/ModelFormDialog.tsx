@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -121,6 +122,9 @@ export function ModelFormDialog({ open, onOpenChange, model }: ModelFormDialogPr
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Model" : "Add New Model"}</DialogTitle>
+          <DialogDescription>
+            {isEditing ? "Update the model details below." : "Register a new AI model to track and manage compliance."}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -242,14 +246,14 @@ export function ModelFormDialog({ open, onOpenChange, model }: ModelFormDialogPr
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vendor</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select onValueChange={(val) => field.onChange(val === "__none__" ? "" : val)} value={field.value || "__none__"}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select vendor (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="__none__">None</SelectItem>
                       {vendors?.map((vendor) => (
                         <SelectItem key={vendor.id} value={vendor.id}>
                           {vendor.name}
