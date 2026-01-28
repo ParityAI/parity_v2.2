@@ -106,14 +106,6 @@ const Auth = () => {
       // Create profile with demo organization for new users
       const demoOrgId = "00000000-0000-0000-0000-000000000001";
 
-      // Check if this is the first user in the organization
-      const { count: existingUsers } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("organization_id", demoOrgId);
-
-      const isFirstUser = (existingUsers || 0) === 0;
-
       // Create the profile
       const { error: profileError } = await supabase.from("profiles").insert({
         user_id: data.user.id,
@@ -125,11 +117,10 @@ const Auth = () => {
         console.error("Failed to create profile:", profileError);
       }
 
-      // Assign role: admin for first user, user for others
-      const role = isFirstUser ? "admin" : "user";
+      // All new users get "user" role - admin must be assigned manually
       const { error: roleError } = await supabase.from("user_roles").insert({
         user_id: data.user.id,
-        role: role,
+        role: "user",
       });
 
       if (roleError) {
@@ -138,9 +129,7 @@ const Auth = () => {
 
       toast({
         title: "Account created",
-        description: isFirstUser
-          ? "You are the first user and have been assigned admin role!"
-          : "You can now sign in with your credentials.",
+        description: "You can now sign in with your credentials.",
       });
     }
     setLoading(false);
