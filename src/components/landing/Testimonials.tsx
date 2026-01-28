@@ -58,7 +58,7 @@ export function Testimonials() {
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Testimonial Card */}
           <div className="lg:col-span-8">
-            <div className="rounded-2xl border border-border bg-card p-8 sm:p-12">
+            <div className="glass rounded-2xl p-8 sm:p-12">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentIndex}
@@ -69,7 +69,7 @@ export function Testimonials() {
                 >
                   {/* Avatar */}
                   <div className="mb-8 flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-sm font-medium text-foreground">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary/80 text-sm font-medium text-foreground">
                       {testimonials[currentIndex].avatar}
                     </div>
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
@@ -98,17 +98,17 @@ export function Testimonials() {
           </div>
 
           {/* Navigation */}
-          <div className="flex flex-col justify-center gap-4 lg:col-span-4">
+          <div className="flex flex-col justify-center gap-3 lg:col-span-4">
             <button
               onClick={handlePrevious}
-              className="flex items-center justify-between rounded-xl border border-border bg-card px-6 py-4 text-foreground transition-colors hover:bg-secondary"
+              className="glass flex items-center justify-between rounded-xl px-6 py-4 text-foreground transition-all hover:border-primary/30 hover:bg-card"
             >
               <ChevronLeft className="h-5 w-5" />
               <span>Previous</span>
             </button>
             <button
               onClick={handleNext}
-              className="flex items-center justify-between rounded-xl border border-border bg-card px-6 py-4 text-foreground transition-colors hover:bg-secondary"
+              className="glass flex items-center justify-between rounded-xl px-6 py-4 text-foreground transition-all hover:border-primary/30 hover:bg-card"
             >
               <span>Next</span>
               <ChevronRight className="h-5 w-5" />

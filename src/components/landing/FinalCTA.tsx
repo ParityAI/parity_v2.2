@@ -11,7 +11,10 @@ export function FinalCTA() {
       
       {/* Background glow */}
       <div 
-        className="absolute left-1/2 top-1/2 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[150px]"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[800px] w-[1000px] -translate-x-1/2 -translate-y-1/2"
+        style={{
+          background: 'radial-gradient(ellipse at center, hsl(160 84% 54% / 0.08) 0%, transparent 60%)',
+        }}
         aria-hidden="true"
       />
       
@@ -35,7 +38,7 @@ export function FinalCTA() {
           <Link to="/auth">
             <Button 
               size="lg" 
-              className="group rounded-full bg-primary px-8 py-6 text-base font-medium text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30"
+              className="group rounded-full bg-primary px-8 py-6 text-base font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_0_40px_-8px_hsl(160_84%_54%/0.5)]"
             >
               Get started now
               <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

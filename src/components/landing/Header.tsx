@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Menu, Zap } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const navItems = [
   { label: "Why Parity?", href: "#why-parity" },
@@ -14,16 +14,31 @@ const navItems = [
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
+    <header 
+      className={`fixed top-0 z-50 w-full transition-all duration-300 ${
+        isScrolled 
+          ? "border-b border-border/40 bg-background/60 backdrop-blur-2xl" 
+          : "bg-transparent"
+      }`}
+    >
       <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Zap className="h-5 w-5 text-primary-foreground" />
+            <Zap className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="text-xl font-semibold text-foreground">Parity AI</span>
+          <span className="text-lg font-semibold text-foreground">Parity AI</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -32,7 +47,7 @@ export function Header() {
             <a
               key={item.label}
               href={item.href}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
             >
               {item.label}
             </a>
@@ -42,7 +57,9 @@ export function Header() {
         {/* CTA Button */}
         <div className="hidden md:block">
           <Link to="/auth">
-            <Button className="rounded-full bg-primary px-6 text-primary-foreground hover:bg-primary/90">
+            <Button 
+              className="rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_0_20px_-4px_hsl(160_84%_54%/0.4)]"
+            >
               Get Started
             </Button>
           </Link>
@@ -51,11 +68,11 @@ export function Header() {
         {/* Mobile Menu */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="text-foreground">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[280px] bg-background">
+          <SheetContent side="right" className="w-[280px] border-border/50 bg-background/95 backdrop-blur-2xl">
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
             <nav className="mt-8 flex flex-col gap-4">
               {navItems.map((item) => (
