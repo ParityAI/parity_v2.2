@@ -22,6 +22,7 @@ import Reporting from "./pages/Reporting";
 import Policies from "./pages/Policies";
 import Transparency from "./pages/Transparency";
 import Incidents from "./pages/Incidents";
+import UserManagement from "./pages/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/policies" element={<Policies />} />
               <Route path="/incidents" element={<Incidents />} />
               <Route path="/transparency" element={<Transparency />} />
+              <Route path="/settings/users" element={<UserManagement />} />
             </Route>
 
             {/* Catch-all */}

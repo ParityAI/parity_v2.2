@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 import { User } from "@supabase/supabase-js";
 
 export function AppLayout() {
@@ -55,6 +56,7 @@ export function AppLayout() {
           <header className="sticky top-0 z-40 flex h-14 items-center border-b border-border bg-background px-4">
             <SidebarTrigger className="mr-4" />
             <div className="flex-1" />
+            <NotificationsDropdown />
           </header>
           <div className="p-6">
             <Outlet />

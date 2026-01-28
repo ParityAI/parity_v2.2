@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, CheckCircle2, Clock, AlertCircle, Calendar } from "lucide-react";
+import { Plus, Search, CheckCircle2, Clock, AlertCircle, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,76 +29,25 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import {
+  useTasks,
+  useCreateTask,
+  useUpdateTask,
+  useDeleteTask,
+  Task,
+  TaskStatus,
+  TaskPriority,
+} from "@/hooks/useTasks";
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: "todo" | "in_progress" | "review" | "completed";
-  priority: "low" | "medium" | "high" | "critical";
-  assignee: string;
-  dueDate: string;
-  category: string;
-  createdAt: string;
-}
-
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    title: "Complete NYC LL144 bias audit",
-    description: "Conduct required bias audit for hiring algorithm",
-    status: "in_progress",
-    priority: "high",
-    assignee: "John Doe",
-    dueDate: "2026-02-15",
-    category: "Compliance",
-    createdAt: "2026-01-15",
-  },
-  {
-    id: "2",
-    title: "Update privacy policy for AI transparency",
-    description: "Add AI usage disclosures to privacy policy",
-    status: "todo",
-    priority: "medium",
-    assignee: "Jane Smith",
-    dueDate: "2026-02-28",
-    category: "Policy",
-    createdAt: "2026-01-20",
-  },
-  {
-    id: "3",
-    title: "Review HireScore model performance",
-    description: "Quarterly review of model accuracy and fairness metrics",
-    status: "review",
-    priority: "high",
-    assignee: "Mike Johnson",
-    dueDate: "2026-02-01",
-    category: "Model Review",
-    createdAt: "2026-01-10",
-  },
-  {
-    id: "4",
-    title: "Vendor security assessment - TalentAI",
-    description: "Complete annual security review for TalentAI vendor",
-    status: "completed",
-    priority: "medium",
-    assignee: "Sarah Wilson",
-    dueDate: "2026-01-25",
-    category: "Vendor",
-    createdAt: "2026-01-05",
-  },
-];
-
-const statusColors = {
+const statusColors: Record<TaskStatus, string> = {
   todo: "bg-gray-100 text-gray-800",
   in_progress: "bg-blue-100 text-blue-800",
   review: "bg-yellow-100 text-yellow-800",
   completed: "bg-green-100 text-green-800",
 };
 
-const priorityColors = {
+const priorityColors: Record<TaskPriority, string> = {
   low: "bg-gray-100 text-gray-600",
   medium: "bg-blue-100 text-blue-600",
   high: "bg-orange-100 text-orange-600",
@@ -106,21 +55,23 @@ const priorityColors = {
 };
 
 export default function Tasks() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const { data: tasks = [], isLoading } = useTasks();
+  const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    status: "todo" as Task["status"],
-    priority: "medium" as Task["priority"],
-    assignee: "",
-    dueDate: "",
+    status: "todo" as TaskStatus,
+    priority: "medium" as TaskPriority,
+    due_date: "",
     category: "",
   });
 
@@ -128,8 +79,7 @@ export default function Tasks() {
     return tasks.filter((task) => {
       const matchesSearch =
         task.title.toLowerCase().includes(search.toLowerCase()) ||
-        task.description.toLowerCase().includes(search.toLowerCase()) ||
-        task.assignee.toLowerCase().includes(search.toLowerCase());
+        (task.description?.toLowerCase() || "").includes(search.toLowerCase());
       const matchesStatus = statusFilter === "all" || task.status === statusFilter;
       const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
       return matchesSearch && matchesStatus && matchesPriority;
@@ -142,7 +92,7 @@ export default function Tasks() {
     inProgress: tasks.filter(t => t.status === "in_progress").length,
     review: tasks.filter(t => t.status === "review").length,
     completed: tasks.filter(t => t.status === "completed").length,
-    overdue: tasks.filter(t => new Date(t.dueDate) < new Date() && t.status !== "completed").length,
+    overdue: tasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== "completed").length,
   }), [tasks]);
 
   const handleAddNew = () => {
@@ -152,8 +102,7 @@ export default function Tasks() {
       description: "",
       status: "todo",
       priority: "medium",
-      assignee: "",
-      dueDate: "",
+      due_date: "",
       category: "",
     });
     setDialogOpen(true);
@@ -163,41 +112,46 @@ export default function Tasks() {
     setEditingTask(task);
     setFormData({
       title: task.title,
-      description: task.description,
+      description: task.description || "",
       status: task.status,
       priority: task.priority,
-      assignee: task.assignee,
-      dueDate: task.dueDate,
-      category: task.category,
+      due_date: task.due_date || "",
+      category: task.category || "",
     });
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!formData.title) {
-      toast({ title: "Error", description: "Title is required", variant: "destructive" });
-      return;
-    }
+  const handleSave = async () => {
+    if (!formData.title) return;
+
+    const taskData = {
+      title: formData.title,
+      description: formData.description || null,
+      status: formData.status,
+      priority: formData.priority,
+      due_date: formData.due_date || null,
+      category: formData.category || null,
+    };
 
     if (editingTask) {
-      setTasks(tasks.map(t => t.id === editingTask.id ? { ...t, ...formData } : t));
-      toast({ title: "Task updated", description: "The task has been updated successfully." });
+      await updateTask.mutateAsync({ id: editingTask.id, ...taskData });
     } else {
-      const newTask: Task = {
-        id: Date.now().toString(),
-        ...formData,
-        createdAt: new Date().toISOString().split("T")[0],
-      };
-      setTasks([newTask, ...tasks]);
-      toast({ title: "Task created", description: "The task has been created successfully." });
+      await createTask.mutateAsync(taskData);
     }
     setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setTasks(tasks.filter(t => t.id !== id));
-    toast({ title: "Task deleted", description: "The task has been removed." });
+  const handleDelete = async (id: string) => {
+    await deleteTask.mutateAsync(id);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -342,21 +296,35 @@ export default function Tasks() {
                     {task.priority}
                   </Badge>
                 </TableCell>
-                <TableCell>{task.assignee}</TableCell>
+                <TableCell>{task.profiles?.full_name || "-"}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {format(new Date(task.dueDate), "MMM d, yyyy")}
-                  </div>
+                  {task.due_date ? (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      {format(new Date(task.due_date), "MMM d, yyyy")}
+                    </div>
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline">{task.category}</Badge>
+                  {task.category ? (
+                    <Badge variant="outline">{task.category}</Badge>
+                  ) : (
+                    "-"
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(task)}>
                     Edit
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(task.id)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600"
+                    onClick={() => handleDelete(task.id)}
+                    disabled={deleteTask.isPending}
+                  >
                     Delete
                   </Button>
                 </TableCell>
@@ -406,7 +374,7 @@ export default function Tasks() {
                 <Label>Status</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value: Task["status"]) => setFormData({ ...formData, status: value })}
+                  onValueChange={(value: TaskStatus) => setFormData({ ...formData, status: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -423,7 +391,7 @@ export default function Tasks() {
                 <Label>Priority</Label>
                 <Select
                   value={formData.priority}
-                  onValueChange={(value: Task["priority"]) => setFormData({ ...formData, priority: value })}
+                  onValueChange={(value: TaskPriority) => setFormData({ ...formData, priority: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -439,37 +407,36 @@ export default function Tasks() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="assignee">Assignee</Label>
+                <Label htmlFor="category">Category</Label>
                 <Input
-                  id="assignee"
-                  value={formData.assignee}
-                  onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
-                  placeholder="Assignee name"
+                  id="category"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  placeholder="e.g., Compliance, Policy"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="dueDate">Due Date</Label>
+                <Label htmlFor="due_date">Due Date</Label>
                 <Input
-                  id="dueDate"
+                  id="due_date"
                   type="date"
-                  value={formData.dueDate}
-                  onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                  value={formData.due_date}
+                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                 />
               </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="e.g., Compliance, Policy, Model Review"
-              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>{editingTask ? "Update" : "Create"}</Button>
+            <Button
+              onClick={handleSave}
+              disabled={createTask.isPending || updateTask.isPending}
+            >
+              {(createTask.isPending || updateTask.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {editingTask ? "Update" : "Create"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
