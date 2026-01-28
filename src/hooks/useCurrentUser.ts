@@ -21,17 +21,30 @@ export function useCurrentUser() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select(`
-          *,
-          organizations(name),
-          user_roles(role)
-        `)
-        .eq("user_id", user.id)
-        .single();
+      // Query profile and role separately since there's no direct FK relationship
+      const [profileResult, roleResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select(`
+            *,
+            organizations(name)
+          `)
+          .eq("user_id", user.id)
+          .single(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .single()
+      ]);
 
-      if (error) throw error;
+      if (profileResult.error) {
+        console.error("Profile fetch error:", profileResult.error);
+        throw profileResult.error;
+      }
+
+      const profile = profileResult.data;
+      const role = roleResult.data?.role || "user";
 
       return {
         id: profile.id,
@@ -40,7 +53,7 @@ export function useCurrentUser() {
         email: user.email,
         avatar_url: profile.avatar_url,
         organization_id: profile.organization_id,
-        role: (profile.user_roles?.[0]?.role || "user") as UserRole,
+        role: role as UserRole,
         organization_name: profile.organizations?.name || null,
       } as CurrentUser;
     },
