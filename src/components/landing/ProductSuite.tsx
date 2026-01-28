@@ -1,17 +1,32 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
+import Marquee from "react-fast-marquee";
 
 const products = [
-  { name: "FairHire AI", category: "HR", status: "Active" },
-  { name: "MedParity", category: "Healthcare", status: "Soon" },
-  { name: "FinParity", category: "Finance", status: "Soon" },
-  { name: "ContentGuard", category: "Media", status: "Soon" },
-  { name: "Enterprise", category: "General", status: "Soon" },
+  { name: "FairHire AI", category: "HR", status: "active", color: "bg-emerald-500" },
+  { name: "MedParity", category: "Healthcare", status: "soon", color: "bg-rose-500" },
+  { name: "FinParity", category: "Finance", status: "soon", color: "bg-amber-500" },
+  { name: "ContentGuard", category: "Media", status: "soon", color: "bg-violet-500" },
+  { name: "Enterprise", category: "General", status: "soon", color: "bg-blue-500" },
 ];
 
-// Duplicate for seamless loop
-const allProducts = [...products, ...products, ...products, ...products];
+const ProductCard = ({ product }: { product: typeof products[0] }) => (
+  <div className="mx-2 flex shrink-0 items-center gap-3 rounded-xl border border-border bg-card px-5 py-3">
+    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${product.color}/20`}>
+      <span className={`text-sm font-semibold ${product.color.replace('bg-', 'text-')}`}>
+        {product.name.charAt(0)}
+      </span>
+    </div>
+    <div>
+      <p className="font-medium text-foreground">{product.name}</p>
+      <p className="text-xs text-muted-foreground">{product.category}</p>
+    </div>
+    {product.status === "active" && (
+      <span className="ml-2 text-xs font-medium text-primary">+Active</span>
+    )}
+  </div>
+);
 
 export function ProductSuite() {
   return (
@@ -42,7 +57,7 @@ export function ProductSuite() {
         </div>
       </div>
 
-      {/* Scrolling product ticker */}
+      {/* Scrolling product ticker with react-fast-marquee */}
       <div className="relative">
         {/* Gradient overlays */}
         <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32 bg-gradient-to-r from-background to-transparent" />
@@ -50,39 +65,29 @@ export function ProductSuite() {
         
         {/* Scrolling rows */}
         <div className="space-y-4">
-          {[0, 1, 2, 3].map((rowIndex) => (
-            <div key={rowIndex} className="flex gap-4 overflow-hidden">
-              <motion.div
-                className="flex shrink-0 gap-4"
-                animate={{ x: rowIndex % 2 === 0 ? ["0%", "-50%"] : ["-50%", "0%"] }}
-                transition={{
-                  duration: 30,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                {allProducts.map((product, index) => (
-                  <div
-                    key={`${product.name}-${index}`}
-                    className="flex shrink-0 items-center gap-3 rounded-xl border border-border bg-card px-5 py-3"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
-                      <span className="text-sm font-medium text-foreground">
-                        {product.name.charAt(0)}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.category}</p>
-                    </div>
-                    {product.status === "Active" && (
-                      <span className="ml-2 text-xs text-primary">+Active</span>
-                    )}
-                  </div>
-                ))}
-              </motion.div>
-            </div>
-          ))}
+          <Marquee speed={30} gradient={false}>
+            {[...products, ...products, ...products].map((product, index) => (
+              <ProductCard key={`row1-${index}`} product={product} />
+            ))}
+          </Marquee>
+          
+          <Marquee speed={25} gradient={false} direction="right">
+            {[...products, ...products, ...products].map((product, index) => (
+              <ProductCard key={`row2-${index}`} product={product} />
+            ))}
+          </Marquee>
+          
+          <Marquee speed={35} gradient={false}>
+            {[...products, ...products, ...products].map((product, index) => (
+              <ProductCard key={`row3-${index}`} product={product} />
+            ))}
+          </Marquee>
+          
+          <Marquee speed={28} gradient={false} direction="right">
+            {[...products, ...products, ...products].map((product, index) => (
+              <ProductCard key={`row4-${index}`} product={product} />
+            ))}
+          </Marquee>
         </div>
       </div>
     </section>
