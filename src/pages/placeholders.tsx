@@ -11,10 +11,8 @@ const Placeholder = ({ title }: { title: string }) => {
 
 export const Tasks = () => <Placeholder title="Tasks" />;
 export const UseCases = () => <Placeholder title="Use Cases" />;
-export const Vendors = () => <Placeholder title="Vendors" />;
 export const Risks = () => <Placeholder title="Risk Management" />;
 export const BiasMetrics = () => <Placeholder title="Bias & Fairness" />;
-export const Compliance = () => <Placeholder title="Compliance Frameworks" />;
 export const Evidence = () => <Placeholder title="Evidence Hub" />;
 export const Reporting = () => <Placeholder title="Reporting" />;
 export const Policies = () => <Placeholder title="Policy Manager" />;

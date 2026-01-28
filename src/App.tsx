@@ -11,11 +11,11 @@ import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
 import Models from "./pages/Models";
 import Compliance from "./pages/Compliance";
+import Vendors from "./pages/Vendors";
 import { AppLayout } from "./components/layout/AppLayout";
 import {
   Tasks,
   UseCases,
-  Vendors,
   Risks,
   BiasMetrics,
   Evidence,
