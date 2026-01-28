@@ -46,18 +46,18 @@ export function WhyParity() {
           </p>
         </motion.div>
 
-        <div className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-px overflow-hidden rounded-2xl border border-border/50 bg-border/50 md:grid-cols-2 lg:grid-cols-4">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
-              className="bg-card p-8"
+              className="group relative bg-card/80 p-8 backdrop-blur-sm transition-colors hover:bg-card"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-border bg-secondary">
-                <feature.icon className="h-6 w-6 text-foreground" />
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-border/50 bg-secondary/50 transition-colors group-hover:border-primary/30 group-hover:bg-primary/10">
+                <feature.icon className="h-6 w-6 text-foreground transition-colors group-hover:text-primary" />
               </div>
               <h3 className="mb-2 text-lg font-medium text-foreground">
                 {feature.title}

@@ -11,17 +11,17 @@ const steps = [
       <div className="space-y-4 p-4">
         <div>
           <label className="mb-2 block text-xs text-muted-foreground">Email</label>
-          <div className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+          <div className="rounded-lg border border-border/50 bg-background/50 px-4 py-3 text-sm text-muted-foreground">
             john@company.com
           </div>
         </div>
         <div>
           <label className="mb-2 block text-xs text-muted-foreground">Password</label>
-          <div className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+          <div className="rounded-lg border border-border/50 bg-background/50 px-4 py-3 text-sm text-muted-foreground">
             ••••••••••••
           </div>
         </div>
-        <div className="rounded-lg bg-secondary/50 px-4 py-3 text-center text-sm text-muted-foreground">
+        <div className="rounded-lg bg-secondary/60 px-4 py-3 text-center text-sm text-muted-foreground">
           Create account
         </div>
       </div>
@@ -33,7 +33,7 @@ const steps = [
     description: "Register your AI models and connect to your data sources to start monitoring.",
     preview: (
       <div className="space-y-3 p-4">
-        <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
+        <div className="flex items-center justify-between rounded-lg border border-border/50 bg-background/50 px-4 py-3">
           <span className="text-sm text-foreground">GPT-4 Hiring Model</span>
           <span className="rounded bg-primary/20 px-2 py-0.5 text-xs text-primary">Connected</span>
         </div>
@@ -68,10 +68,10 @@ const steps = [
         ].map((item) => (
           <div
             key={item.name}
-            className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3"
+            className="flex items-center justify-between rounded-lg border border-border/50 bg-background/50 px-4 py-3"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-sm">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/80 text-sm">
                 {item.icon}
               </div>
               <span className="text-sm font-medium text-foreground">{item.name}</span>
@@ -126,14 +126,14 @@ export function HowItWorks() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               {/* Step number */}
-              <div className="absolute -top-3 left-4 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card text-sm font-medium text-foreground">
+              <div className="absolute -top-3 left-4 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-border/50 bg-card text-sm font-medium text-foreground backdrop-blur-sm">
                 {step.number}
               </div>
               
               {/* Card */}
-              <div className="overflow-hidden rounded-2xl border border-border bg-card">
+              <div className="glass overflow-hidden rounded-2xl transition-all duration-300 group-hover:border-primary/20">
                 {/* Preview */}
-                <div className="min-h-[240px] border-b border-border bg-secondary/30">
+                <div className="min-h-[240px] border-b border-border/50 bg-secondary/20">
                   {step.preview}
                 </div>
                 

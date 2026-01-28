@@ -4,29 +4,41 @@ import { motion } from "framer-motion";
 import Marquee from "react-fast-marquee";
 
 const products = [
-  { name: "FairHire AI", category: "HR", status: "active", color: "bg-emerald-500" },
-  { name: "MedParity", category: "Healthcare", status: "soon", color: "bg-rose-500" },
-  { name: "FinParity", category: "Finance", status: "soon", color: "bg-amber-500" },
-  { name: "ContentGuard", category: "Media", status: "soon", color: "bg-violet-500" },
-  { name: "Enterprise", category: "General", status: "soon", color: "bg-blue-500" },
+  { name: "FairHire AI", category: "HR", status: "active", color: "emerald" },
+  { name: "MedParity", category: "Healthcare", status: "soon", color: "rose" },
+  { name: "FinParity", category: "Finance", status: "soon", color: "amber" },
+  { name: "ContentGuard", category: "Media", status: "soon", color: "violet" },
+  { name: "Enterprise", category: "General", status: "soon", color: "blue" },
 ];
 
-const ProductCard = ({ product }: { product: typeof products[0] }) => (
-  <div className="mx-2 flex shrink-0 items-center gap-3 rounded-xl border border-border bg-card px-5 py-3">
-    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${product.color}/20`}>
-      <span className={`text-sm font-semibold ${product.color.replace('bg-', 'text-')}`}>
-        {product.name.charAt(0)}
-      </span>
+const colorClasses: Record<string, { bg: string; text: string }> = {
+  emerald: { bg: "bg-emerald-500/10", text: "text-emerald-400" },
+  rose: { bg: "bg-rose-500/10", text: "text-rose-400" },
+  amber: { bg: "bg-amber-500/10", text: "text-amber-400" },
+  violet: { bg: "bg-violet-500/10", text: "text-violet-400" },
+  blue: { bg: "bg-blue-500/10", text: "text-blue-400" },
+};
+
+const ProductCard = ({ product }: { product: typeof products[0] }) => {
+  const colors = colorClasses[product.color];
+  
+  return (
+    <div className="mx-2 flex shrink-0 items-center gap-3 rounded-xl border border-border/40 bg-card/50 px-5 py-3 backdrop-blur-sm transition-all hover:border-border hover:bg-card">
+      <div className={`flex h-10 w-10 items-center justify-center rounded-full ${colors.bg}`}>
+        <span className={`text-sm font-semibold ${colors.text}`}>
+          {product.name.charAt(0)}
+        </span>
+      </div>
+      <div>
+        <p className="font-medium text-foreground">{product.name}</p>
+        <p className="text-xs text-muted-foreground">{product.category}</p>
+      </div>
+      {product.status === "active" && (
+        <span className="ml-2 text-xs font-medium text-primary">+Active</span>
+      )}
     </div>
-    <div>
-      <p className="font-medium text-foreground">{product.name}</p>
-      <p className="text-xs text-muted-foreground">{product.category}</p>
-    </div>
-    {product.status === "active" && (
-      <span className="ml-2 text-xs font-medium text-primary">+Active</span>
-    )}
-  </div>
-);
+  );
+};
 
 export function ProductSuite() {
   return (
@@ -57,14 +69,14 @@ export function ProductSuite() {
         </div>
       </div>
 
-      {/* Scrolling product ticker with react-fast-marquee */}
+      {/* Scrolling product ticker */}
       <div className="relative">
         {/* Gradient overlays */}
         <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32 bg-gradient-to-r from-background to-transparent" />
         <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-32 bg-gradient-to-l from-background to-transparent" />
         
         {/* Scrolling rows */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <Marquee speed={30} gradient={false}>
             {[...products, ...products, ...products].map((product, index) => (
               <ProductCard key={`row1-${index}`} product={product} />
