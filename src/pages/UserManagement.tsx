@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
-import { Search, Users, Shield, UserCog, Loader2 } from "lucide-react";
+import { Search, Users, Shield, UserCog, Loader2, UserPlus, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -37,6 +38,8 @@ import {
   UserProfile,
   UserRole,
 } from "@/hooks/useUsers";
+import { RequireRole } from "@/components/auth/RequireRole";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const roleColors: Record<UserRole, string> = {
   admin: "bg-purple-100 text-purple-700",
@@ -50,19 +53,33 @@ const roleDescriptions: Record<UserRole, string> = {
   viewer: "Read-only access to dashboards and reports",
 };
 
-export default function UserManagement() {
+function UserManagementContent() {
   const { data: users = [], isLoading } = useUsers();
+  const { data: currentUser } = useCurrentUser();
   const updateRole = useUpdateUserRole();
   const updateProfile = useUpdateProfile();
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState({
     full_name: "",
     role: "user" as UserRole,
   });
+
+  // Generate invite link (users sign up at /auth and join the organization)
+  const inviteLink = typeof window !== "undefined"
+    ? `${window.location.origin}/auth?invite=true`
+    : "";
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -146,7 +163,25 @@ export default function UserManagement() {
             Manage team members and their access permissions
           </p>
         </div>
+        <Button onClick={() => setInviteDialogOpen(true)} className="gap-2">
+          <UserPlus className="h-4 w-4" />
+          Invite User
+        </Button>
       </div>
+
+      {/* Current User Info */}
+      {currentUser && (
+        <Alert>
+          <Shield className="h-4 w-4" />
+          <AlertTitle>Your Role: {currentUser.role}</AlertTitle>
+          <AlertDescription>
+            You are logged in as <strong>{currentUser.full_name || currentUser.email}</strong>
+            {currentUser.organization_name && (
+              <> in organization <strong>{currentUser.organization_name}</strong></>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -331,6 +366,69 @@ export default function UserManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Invite Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Invite Team Members</DialogTitle>
+            <DialogDescription>
+              Share this link with team members to invite them to your organization.
+              They will need to create an account to join.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label>Invitation Link</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={inviteLink}
+                  readOnly
+                  className="font-mono text-sm"
+                />
+                <Button onClick={handleCopyLink} variant="outline" className="shrink-0">
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+            <Alert>
+              <UserPlus className="h-4 w-4" />
+              <AlertTitle>How it works</AlertTitle>
+              <AlertDescription>
+                <ol className="list-decimal list-inside mt-2 space-y-1 text-sm">
+                  <li>Share the link with your team member</li>
+                  <li>They sign up using the link</li>
+                  <li>They automatically join your organization</li>
+                  <li>You can then set their role from this page</li>
+                </ol>
+              </AlertDescription>
+            </Alert>
+            <div className="grid gap-2">
+              <Label>Default Role for New Users</Label>
+              <p className="text-sm text-muted-foreground">
+                New users are assigned the <Badge className={roleColors["user"]}>user</Badge> role by default.
+                You can change their role after they join.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setInviteDialogOpen(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+// Wrap with role-based access control - only admins can access
+export default function UserManagement() {
+  return (
+    <RequireRole allowedRoles={["admin"]}>
+      <UserManagementContent />
+    </RequireRole>
   );
 }
