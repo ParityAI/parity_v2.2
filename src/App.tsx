@@ -8,12 +8,12 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
+import Models from "./pages/Models";
 import { AppLayout } from "./components/layout/AppLayout";
 import {
   Tasks,
   UseCases,
   Vendors,
-  Models,
   Risks,
   BiasMetrics,
   Compliance,
