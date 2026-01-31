@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export type PolicyStatus = "draft" | "under_review" | "published" | "archived";
@@ -39,17 +38,13 @@ export interface PolicyUpdate extends Partial<PolicyInsert> {
   id: string;
 }
 
+// Stub hooks - policies table needs to be created
 export function usePolicies() {
   return useQuery({
     queryKey: ["policies"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("policies")
-        .select("*, profiles:owner_id(full_name)")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Policy[];
+      // Table doesn't exist yet - return empty array
+      return [] as Policy[];
     },
   });
 }
@@ -58,23 +53,8 @@ export function useCreatePolicy() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (policy: PolicyInsert) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("organization_id")
-        .single();
-
-      const { data, error } = await supabase
-        .from("policies")
-        .insert({
-          ...policy,
-          organization_id: profile?.organization_id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_policy: PolicyInsert) => {
+      throw new Error("policies table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["policies"] });
@@ -90,16 +70,8 @@ export function useUpdatePolicy() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: PolicyUpdate) => {
-      const { data, error } = await supabase
-        .from("policies")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_update: PolicyUpdate) => {
+      throw new Error("policies table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["policies"] });
@@ -115,9 +87,8 @@ export function useDeletePolicy() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("policies").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (_id: string) => {
+      throw new Error("policies table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["policies"] });
