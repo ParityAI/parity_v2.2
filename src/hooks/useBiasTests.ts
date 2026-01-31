@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export type BiasTestResult = "pass" | "fail" | "warning";
@@ -36,17 +35,13 @@ export interface BiasTestUpdate extends Partial<BiasTestInsert> {
   id: string;
 }
 
+// Stub hooks - bias_tests table needs to be created
 export function useBiasTests() {
   return useQuery({
     queryKey: ["bias-tests"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bias_tests")
-        .select("*, models(name), profiles:tested_by(full_name)")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as BiasTest[];
+      // Table doesn't exist yet - return empty array
+      return [] as BiasTest[];
     },
   });
 }
@@ -55,14 +50,8 @@ export function useBiasTestsByModel(modelId: string) {
   return useQuery({
     queryKey: ["bias-tests", modelId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bias_tests")
-        .select("*, models(name), profiles:tested_by(full_name)")
-        .eq("model_id", modelId)
-        .order("test_date", { ascending: false });
-
-      if (error) throw error;
-      return data as BiasTest[];
+      // Table doesn't exist yet - return empty array
+      return [] as BiasTest[];
     },
     enabled: !!modelId,
   });
@@ -72,25 +61,8 @@ export function useCreateBiasTest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (test: BiasTestInsert) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("organization_id, id")
-        .single();
-
-      const { data, error } = await supabase
-        .from("bias_tests")
-        .insert({
-          ...test,
-          organization_id: profile?.organization_id,
-          tested_by: profile?.id,
-          test_date: test.test_date || new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_test: BiasTestInsert) => {
+      throw new Error("bias_tests table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bias-tests"] });
@@ -106,16 +78,8 @@ export function useUpdateBiasTest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: BiasTestUpdate) => {
-      const { data, error } = await supabase
-        .from("bias_tests")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_update: BiasTestUpdate) => {
+      throw new Error("bias_tests table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bias-tests"] });
@@ -131,9 +95,8 @@ export function useDeleteBiasTest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("bias_tests").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (_id: string) => {
+      throw new Error("bias_tests table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["bias-tests"] });

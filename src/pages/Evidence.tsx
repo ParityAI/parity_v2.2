@@ -36,8 +36,8 @@ import {
   useCreateEvidence,
   useUpdateEvidence,
   useDeleteEvidence,
-  Evidence,
-  EvidenceType,
+  type Evidence as EvidenceItem,
+  type EvidenceType,
 } from "@/hooks/useEvidence";
 
 const typeIcons: Record<string, typeof FileText> = {
@@ -71,7 +71,7 @@ export default function Evidence() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingEvidence, setEditingEvidence] = useState<Evidence | null>(null);
+  const [editingEvidence, setEditingEvidence] = useState<EvidenceItem | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -113,7 +113,7 @@ export default function Evidence() {
     setDialogOpen(true);
   };
 
-  const handleEdit = (item: Evidence) => {
+  const handleEdit = (item: EvidenceItem) => {
     setEditingEvidence(item);
     setFormData({
       name: item.name,
