@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export type RiskSeverity = "negligible" | "minor" | "moderate" | "major" | "critical";
@@ -49,17 +48,13 @@ export interface RiskUpdate extends Partial<RiskInsert> {
   id: string;
 }
 
+// Stub hooks - risks table needs to be created
 export function useRisks() {
   return useQuery({
     queryKey: ["risks"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("risks")
-        .select("*, profiles:owner_id(full_name), models(name), vendors(name)")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Risk[];
+      // Table doesn't exist yet - return empty array
+      return [] as Risk[];
     },
   });
 }
@@ -68,23 +63,8 @@ export function useCreateRisk() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (risk: RiskInsert) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("organization_id")
-        .single();
-
-      const { data, error } = await supabase
-        .from("risks")
-        .insert({
-          ...risk,
-          organization_id: profile?.organization_id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_risk: RiskInsert) => {
+      throw new Error("risks table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["risks"] });
@@ -101,16 +81,8 @@ export function useUpdateRisk() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: RiskUpdate) => {
-      const { data, error } = await supabase
-        .from("risks")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_update: RiskUpdate) => {
+      throw new Error("risks table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["risks"] });
@@ -127,9 +99,8 @@ export function useDeleteRisk() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("risks").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (_id: string) => {
+      throw new Error("risks table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["risks"] });

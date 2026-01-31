@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export type EvidenceType = "document" | "screenshot" | "audit_report" | "certification" | "test_result" | "other";
@@ -44,17 +43,13 @@ export interface EvidenceUpdate extends Partial<EvidenceInsert> {
   id: string;
 }
 
+// Stub hooks - evidence table needs to be created
 export function useEvidence() {
   return useQuery({
     queryKey: ["evidence"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("evidence")
-        .select("*, profiles:uploaded_by(full_name), models(name), vendors(name)")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Evidence[];
+      // Table doesn't exist yet - return empty array
+      return [] as Evidence[];
     },
   });
 }
@@ -63,24 +58,8 @@ export function useCreateEvidence() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (evidence: EvidenceInsert) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("organization_id, id")
-        .single();
-
-      const { data, error } = await supabase
-        .from("evidence")
-        .insert({
-          ...evidence,
-          organization_id: profile?.organization_id,
-          uploaded_by: profile?.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_evidence: EvidenceInsert) => {
+      throw new Error("evidence table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["evidence"] });
@@ -96,16 +75,8 @@ export function useUpdateEvidence() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: EvidenceUpdate) => {
-      const { data, error } = await supabase
-        .from("evidence")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_update: EvidenceUpdate) => {
+      throw new Error("evidence table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["evidence"] });
@@ -121,9 +92,8 @@ export function useDeleteEvidence() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("evidence").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (_id: string) => {
+      throw new Error("evidence table not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["evidence"] });
