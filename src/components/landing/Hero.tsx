@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Star, Shield, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { ArrowUpRight, Shield, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function Hero() {
@@ -65,18 +65,6 @@ export function Hero() {
             </Button>
           </Link>
 
-          {/* Trust Badge */}
-          <div className="mt-12 flex flex-col items-center gap-2">
-            <p className="text-sm text-muted-foreground">They trust us</p>
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4].map((i) => (
-                <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-              ))}
-              <Star className="h-4 w-4 fill-primary/40 text-primary/40" />
-              <span className="ml-2 text-sm font-medium text-foreground">4.9</span>
-              <span className="ml-1 text-sm text-muted-foreground">G</span>
-            </div>
-          </div>
         </motion.div>
 
         {/* Dashboard Preview */}
