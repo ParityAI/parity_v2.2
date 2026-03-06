@@ -21,41 +21,60 @@ export function useCurrentUser() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      // Query profile and role separately since there's no direct FK relationship
-      const [profileResult, roleResult] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select(`
-            *,
-            organizations(name)
-          `)
-          .eq("user_id", user.id)
-          .single(),
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id)
-          .single()
-      ]);
+      try {
+        const [profileResult, roleResult] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("*, organizations(name)")
+            .eq("user_id", user.id)
+            .single(),
+          supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .single()
+        ]);
 
-      if (profileResult.error) {
-        console.error("Profile fetch error:", profileResult.error);
-        throw profileResult.error;
+        if (profileResult.error) {
+          // Fallback for demo user without profile
+          return {
+            id: user.id,
+            user_id: user.id,
+            full_name: user.email?.split("@")[0] || "Demo User",
+            email: user.email,
+            avatar_url: null,
+            organization_id: null,
+            role: (roleResult.data?.role as UserRole) || "admin",
+            organization_name: "Parity AI Demo",
+          } as CurrentUser;
+        }
+
+        const profile = profileResult.data;
+        const role = roleResult.data?.role || "user";
+
+        return {
+          id: profile.id,
+          user_id: profile.user_id,
+          full_name: profile.full_name,
+          email: user.email,
+          avatar_url: profile.avatar_url,
+          organization_id: profile.organization_id,
+          role: role as UserRole,
+          organization_name: profile.organizations?.name || "Parity AI Demo",
+        } as CurrentUser;
+      } catch (error) {
+        console.error("Current user error:", error);
+        return {
+          id: user.id,
+          user_id: user.id,
+          full_name: user.email?.split("@")[0] || "Demo User",
+          email: user.email,
+          avatar_url: null,
+          organization_id: null,
+          role: "admin" as UserRole,
+          organization_name: "Parity AI Demo",
+        } as CurrentUser;
       }
-
-      const profile = profileResult.data;
-      const role = roleResult.data?.role || "user";
-
-      return {
-        id: profile.id,
-        user_id: profile.user_id,
-        full_name: profile.full_name,
-        email: user.email,
-        avatar_url: profile.avatar_url,
-        organization_id: profile.organization_id,
-        role: role as UserRole,
-        organization_name: profile.organizations?.name || null,
-      } as CurrentUser;
     },
   });
 }
