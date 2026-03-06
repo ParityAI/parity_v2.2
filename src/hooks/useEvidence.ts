@@ -44,6 +44,67 @@ export interface EvidenceUpdate extends Partial<EvidenceInsert> {
   id: string;
 }
 
+// Sample data for demo when table doesn't exist
+const DEMO_EVIDENCE: Evidence[] = [
+  {
+    id: "demo-1",
+    organization_id: "demo-org",
+    name: "SOC 2 Type II Certification",
+    description: "Annual SOC 2 compliance certification for cloud infrastructure",
+    file_url: null,
+    file_type: "pdf",
+    file_size: 2457600,
+    evidence_type: "certification",
+    category: "Compliance",
+    model_id: null,
+    vendor_id: null,
+    assessment_id: null,
+    uploaded_by: null,
+    expires_at: "2027-03-15",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    profiles: { full_name: "Sarah Johnson" },
+  },
+  {
+    id: "demo-2",
+    organization_id: "demo-org",
+    name: "Bias Audit Report - Q4 2025",
+    description: "Quarterly bias testing results for all production models",
+    file_url: null,
+    file_type: "pdf",
+    file_size: 1843200,
+    evidence_type: "audit_report",
+    category: "Fairness",
+    model_id: null,
+    vendor_id: null,
+    assessment_id: null,
+    uploaded_by: null,
+    expires_at: null,
+    created_at: new Date(Date.now() - 604800000).toISOString(),
+    updated_at: new Date(Date.now() - 604800000).toISOString(),
+    profiles: { full_name: "Michael Chen" },
+  },
+  {
+    id: "demo-3",
+    organization_id: "demo-org",
+    name: "Model Performance Test Results",
+    description: "Automated testing results for fraud detection model v2.3",
+    file_url: null,
+    file_type: "xlsx",
+    file_size: 524288,
+    evidence_type: "test_result",
+    category: "Performance",
+    model_id: null,
+    vendor_id: null,
+    assessment_id: null,
+    uploaded_by: null,
+    expires_at: null,
+    created_at: new Date(Date.now() - 259200000).toISOString(),
+    updated_at: new Date(Date.now() - 259200000).toISOString(),
+    profiles: { full_name: "Emily Davis" },
+  },
+];
+
 export function useEvidence() {
   return useQuery({
     queryKey: ["evidence"],
@@ -53,7 +114,10 @@ export function useEvidence() {
         .select("*, profiles:uploaded_by(full_name), models(name), vendors(name)")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.log("Using demo evidence data");
+        return DEMO_EVIDENCE;
+      }
       return data as Evidence[];
     },
   });

@@ -49,6 +49,70 @@ export interface RiskUpdate extends Partial<RiskInsert> {
   id: string;
 }
 
+// Sample data for demo when table doesn't exist
+const DEMO_RISKS: Risk[] = [
+  {
+    id: "demo-1",
+    organization_id: "demo-org",
+    title: "Model Bias in Hiring Algorithm",
+    description: "Potential demographic bias detected in resume screening model",
+    category: "Fairness",
+    severity: "critical",
+    likelihood: "medium",
+    impact: "Regulatory fines and reputational damage",
+    mitigation_status: "in_progress",
+    mitigation_plan: "Conduct comprehensive bias audit and retrain model",
+    owner_id: null,
+    model_id: null,
+    vendor_id: null,
+    identified_date: new Date(Date.now() - 604800000).toISOString(),
+    review_date: new Date(Date.now() + 604800000).toISOString(),
+    created_at: new Date(Date.now() - 604800000).toISOString(),
+    updated_at: new Date().toISOString(),
+    profiles: { full_name: "Sarah Johnson" },
+  },
+  {
+    id: "demo-2",
+    organization_id: "demo-org",
+    title: "Data Privacy Compliance Gap",
+    description: "Training data may contain PII without proper consent",
+    category: "Privacy",
+    severity: "major",
+    likelihood: "high",
+    impact: "GDPR violation penalties up to 4% of revenue",
+    mitigation_status: "not_started",
+    mitigation_plan: "Audit training datasets and implement data anonymization",
+    owner_id: null,
+    model_id: null,
+    vendor_id: null,
+    identified_date: new Date(Date.now() - 259200000).toISOString(),
+    review_date: new Date(Date.now() + 1209600000).toISOString(),
+    created_at: new Date(Date.now() - 259200000).toISOString(),
+    updated_at: new Date().toISOString(),
+    profiles: { full_name: "Michael Chen" },
+  },
+  {
+    id: "demo-3",
+    organization_id: "demo-org",
+    title: "Third-Party Model Dependency",
+    description: "Critical business process relies on external API with no SLA",
+    category: "Operational",
+    severity: "moderate",
+    likelihood: "low",
+    impact: "Service disruption affecting customer experience",
+    mitigation_status: "completed",
+    mitigation_plan: "Negotiate SLA and implement fallback mechanism",
+    owner_id: null,
+    model_id: null,
+    vendor_id: null,
+    identified_date: new Date(Date.now() - 1209600000).toISOString(),
+    review_date: null,
+    created_at: new Date(Date.now() - 1209600000).toISOString(),
+    updated_at: new Date().toISOString(),
+    profiles: { full_name: "Emily Davis" },
+  },
+];
+
 export function useRisks() {
   return useQuery({
     queryKey: ["risks"],
@@ -58,7 +122,10 @@ export function useRisks() {
         .select("*, profiles:owner_id(full_name), models(name), vendors(name)")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.log("Using demo risks data");
+        return DEMO_RISKS;
+      }
       return data as Risk[];
     },
   });

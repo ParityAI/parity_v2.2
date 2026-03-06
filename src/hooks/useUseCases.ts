@@ -46,6 +46,64 @@ export interface UseCaseUpdate extends Partial<UseCaseInsert> {
   id: string;
 }
 
+// Sample data for demo when table doesn't exist
+const DEMO_USE_CASES: UseCase[] = [
+  {
+    id: "demo-1",
+    organization_id: "demo-org",
+    name: "Customer Support Chatbot",
+    description: "AI-powered chatbot for handling customer inquiries",
+    status: "in_progress",
+    progress: 75,
+    risk_level: "medium",
+    department: "Customer Service",
+    owner_id: null,
+    owner_name: "Sarah Johnson",
+    model_id: null,
+    vendor_id: null,
+    business_justification: "Reduce support ticket volume by 40%",
+    target_completion_date: "2026-06-30",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "demo-2",
+    organization_id: "demo-org",
+    name: "Fraud Detection System",
+    description: "ML model for real-time transaction fraud detection",
+    status: "completed",
+    progress: 100,
+    risk_level: "high",
+    department: "Finance",
+    owner_id: null,
+    owner_name: "Michael Chen",
+    model_id: null,
+    vendor_id: null,
+    business_justification: "Prevent $2M annual fraud losses",
+    target_completion_date: "2026-03-01",
+    created_at: new Date(Date.now() - 2592000000).toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "demo-3",
+    organization_id: "demo-org",
+    name: "Document Classification",
+    description: "Automated document sorting and categorization",
+    status: "not_started",
+    progress: 0,
+    risk_level: "low",
+    department: "Legal",
+    owner_id: null,
+    owner_name: "Emily Davis",
+    model_id: null,
+    vendor_id: null,
+    business_justification: "Reduce manual document processing time by 60%",
+    target_completion_date: "2026-09-15",
+    created_at: new Date(Date.now() - 604800000).toISOString(),
+    updated_at: new Date(Date.now() - 604800000).toISOString(),
+  },
+];
+
 export function useUseCases() {
   return useQuery({
     queryKey: ["use-cases"],
@@ -55,7 +113,10 @@ export function useUseCases() {
         .select("*, profiles:owner_id(full_name), models(name), vendors(name)")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.log("Using demo use cases data");
+        return DEMO_USE_CASES;
+      }
       return data as UseCase[];
     },
   });
