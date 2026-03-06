@@ -39,22 +39,20 @@ export function FinalCTA() {
             <Link to="/dashboard">
               <Button
                 size="lg"
-                variant="outline"
-                className="group rounded-full border-primary/50 px-8 py-6 text-base font-medium transition-all duration-300 hover:bg-primary/10 hover:border-primary"
+                className="group rounded-full bg-primary px-8 py-6 text-base font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_0_40px_-8px_hsl(160_84%_54%/0.5)]"
               >
                 Try Live Demo
                 <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Button>
             </Link>
-            <Link to="/auth">
-              <Button
-                size="lg"
-                className="group rounded-full bg-primary px-8 py-6 text-base font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-[0_0_40px_-8px_hsl(160_84%_54%/0.5)]"
-              >
-                Get Started Free
-                <ArrowUpRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              variant="outline"
+              className="group rounded-full border-primary/50 px-8 py-6 text-base font-medium transition-all duration-300 hover:bg-primary/10 hover:border-primary"
+              onClick={() => window.open('mailto:pilots@parityai.io?subject=Public Sector Pilot Inquiry', '_blank')}
+            >
+              Request Pilot Access
+            </Button>
           </div>
         </motion.div>
       </div>

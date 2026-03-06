@@ -95,11 +95,11 @@ export function FAQ() {
             </p>
           </motion.div>
           
-          <Link 
-            to="/auth" 
+          <Link
+            to="/dashboard"
             className="inline-flex items-center gap-2 text-primary transition-colors hover:text-primary/80"
           >
-            Create account now
+            Try Live Demo
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>

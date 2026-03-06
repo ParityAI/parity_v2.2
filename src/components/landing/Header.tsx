@@ -65,19 +65,23 @@ export function Header() {
         {/* CTA Buttons & Theme Toggle */}
         <div className="hidden items-center gap-3 md:flex">
           <ThemeToggle />
-          <Link to="/dashboard">
+          <a
+            href="https://github.com/m-zest/parity_v2"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Button
               variant="outline"
               className="rounded-full border-primary/50 px-5 text-sm font-medium"
             >
-              Try Demo
+              GitHub
             </Button>
-          </Link>
-          <Link to="/auth">
+          </a>
+          <Link to="/dashboard">
             <Button
               className="rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
             >
-              Get Started
+              Try Demo
             </Button>
           </Link>
         </div>
@@ -115,17 +119,22 @@ export function Header() {
                     </a>
                   )
                 )}
-                <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+                <a
+                  href="https://github.com/m-zest/parity_v2"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsOpen(false)}
+                >
                   <Button
                     variant="outline"
                     className="mt-4 w-full rounded-full border-primary/50"
                   >
-                    Try Demo
+                    GitHub
                   </Button>
-                </Link>
-                <Link to="/auth" onClick={() => setIsOpen(false)}>
+                </a>
+                <Link to="/dashboard" onClick={() => setIsOpen(false)}>
                   <Button className="w-full rounded-full bg-primary text-primary-foreground">
-                    Get Started
+                    Try Demo
                   </Button>
                 </Link>
               </nav>

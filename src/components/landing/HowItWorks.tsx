@@ -158,11 +158,11 @@ export function HowItWorks() {
             </p>
           </motion.div>
           
-          <Link 
-            to="/auth" 
+          <Link
+            to="/dashboard"
             className="inline-flex items-center gap-2 text-primary transition-colors hover:text-primary/80"
           >
-            Create account now
+            Try the demo
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
@@ -227,21 +227,21 @@ export function HowItWorks() {
         </div>
         
         {/* Bottom CTA */}
-        <motion.div 
+        <motion.div
           className="mt-12 text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Link 
-            to="/auth" 
+          <Link
+            to="/dashboard"
             className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
           >
-            Start for free
+            Try Live Demo
             <ArrowUpRight className="h-4 w-4" />
           </Link>
-          <p className="mt-3 text-xs text-muted-foreground">No credit card required • Setup in under 5 minutes</p>
+          <p className="mt-3 text-xs text-muted-foreground">Open source • Self-hosted option available</p>
         </motion.div>
       </div>
     </section>
