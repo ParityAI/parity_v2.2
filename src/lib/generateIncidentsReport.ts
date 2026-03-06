@@ -6,14 +6,16 @@ interface Incident {
   id: string;
   title: string;
   description: string | null;
-  severity: "critical" | "high" | "medium" | "low";
-  status: "open" | "investigating" | "mitigated" | "closed";
+  severity: string;
+  status: string;
   investigation_notes: string | null;
-  resolution: string | null;
+  resolution_notes: string | null;
+  resolved_at?: string | null;
   created_at: string;
   updated_at: string;
   models?: { name: string } | null;
   vendors?: { name: string } | null;
+  [key: string]: unknown;
 }
 
 interface IncidentsReportData {
