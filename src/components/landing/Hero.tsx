@@ -107,9 +107,7 @@ export function Hero() {
             <div className="flex items-center justify-between border-b border-border/50 px-6 py-4">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                    <span className="text-sm font-bold text-primary-foreground">P</span>
-                  </div>
+                  <img src="/logo-icon.svg" alt="Parity AI" className="h-8 w-8" />
                   <span className="font-medium text-foreground">Parity AI</span>
                 </div>
                 <div className="h-6 w-px bg-border/50" />

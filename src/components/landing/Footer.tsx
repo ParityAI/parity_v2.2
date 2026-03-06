@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Zap } from "lucide-react";
 
 const navigation = [
   { label: "About", href: "/about", isRoute: true },
@@ -28,9 +27,7 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-5">
             <Link to="/" className="mb-6 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Zap className="h-4 w-4 text-primary-foreground" />
-              </div>
+              <img src="/logo-icon.svg" alt="Parity AI" className="h-8 w-8" />
               <span className="text-lg font-semibold text-foreground">Parity AI</span>
             </Link>
             <p className="mb-8 max-w-sm text-sm leading-relaxed text-muted-foreground">

@@ -136,9 +136,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">P</span>
-          </div>
+          <img src="/logo-icon.svg" alt="Parity AI" className="h-8 w-8" />
           {!collapsed && (
             <span className="text-lg font-bold text-sidebar-foreground">Parity AI</span>
           )}
