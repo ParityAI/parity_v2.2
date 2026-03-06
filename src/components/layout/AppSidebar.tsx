@@ -24,6 +24,11 @@ import {
   Eye,
   Settings,
   Lock,
+  CreditCard,
+  GitCompare,
+  Grid3X3,
+  Megaphone,
+  Globe,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +92,14 @@ const governanceNav = [
   { name: "Policy Manager", icon: FileText, href: "/policies" },
   { name: "Incidents", icon: AlertCircle, href: "/incidents" },
   { name: "User Management", icon: Users, href: "/settings/users", adminOnly: true },
+];
+
+const transparencyNav = [
+  { name: "Public Portal", icon: Globe, href: "/public/transparency", external: true },
+  { name: "System Cards", icon: CreditCard, href: "/system-cards" },
+  { name: "Framework Compare", icon: GitCompare, href: "/framework-comparison" },
+  { name: "Risk Heatmap", icon: Grid3X3, href: "/risk-heatmap" },
+  { name: "Incident Disclosure", icon: Megaphone, href: "/incident-disclosure" },
 ];
 
 export function AppSidebar() {
@@ -209,6 +222,13 @@ export function AppSidebar() {
           {!collapsed && <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground">GOVERNANCE</SidebarGroupLabel>}
           <SidebarGroupContent>
             <SidebarMenu>{filteredGovernanceNav.map(renderNavItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          {!collapsed && <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground">TRANSPARENCY</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>{transparencyNav.map(renderNavItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
