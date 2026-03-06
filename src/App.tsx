@@ -28,6 +28,11 @@ import MedParity from "./pages/products/MedParity";
 import ContentGuard from "./pages/products/ContentGuard";
 import Enterprise from "./pages/products/Enterprise";
 import About from "./pages/About";
+import TransparencyPortal from "./pages/TransparencyPortal";
+import SystemCardGenerator from "./pages/SystemCardGenerator";
+import FrameworkComparison from "./pages/FrameworkComparison";
+import RiskHeatmap from "./pages/RiskHeatmap";
+import IncidentDisclosure from "./pages/IncidentDisclosure";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +49,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/products/:productId" element={<ComingSoon />} />
+            <Route path="/public/transparency" element={<TransparencyPortal />} />
 
             {/* Protected app routes */}
             <Route element={<AppLayout />}>
@@ -60,6 +66,10 @@ const App = () => (
               <Route path="/policies" element={<Policies />} />
               <Route path="/incidents" element={<Incidents />} />
               <Route path="/transparency" element={<Transparency />} />
+              <Route path="/system-cards" element={<SystemCardGenerator />} />
+              <Route path="/framework-comparison" element={<FrameworkComparison />} />
+              <Route path="/risk-heatmap" element={<RiskHeatmap />} />
+              <Route path="/incident-disclosure" element={<IncidentDisclosure />} />
               <Route path="/settings/users" element={<UserManagement />} />
               <Route path="/products/finparity" element={<FinParity />} />
               <Route path="/products/medparity" element={<MedParity />} />

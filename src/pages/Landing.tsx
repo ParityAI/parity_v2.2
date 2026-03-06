@@ -4,6 +4,7 @@ import { KeyStats } from "@/components/landing/KeyStats";
 import { Tagline } from "@/components/landing/Tagline";
 import { WhyParity } from "@/components/landing/WhyParity";
 import { PublicSector } from "@/components/landing/PublicSector";
+import { TransparencyTools } from "@/components/landing/TransparencyTools";
 import { ProductSuite } from "@/components/landing/ProductSuite";
 import { Integrations } from "@/components/landing/Integrations";
 import { ComplianceFrameworks } from "@/components/landing/ComplianceFrameworks";
@@ -22,6 +23,7 @@ const Landing = () => {
         <Tagline />
         <WhyParity />
         <PublicSector />
+        <TransparencyTools />
         <ProductSuite />
         <Integrations />
         <ComplianceFrameworks />
