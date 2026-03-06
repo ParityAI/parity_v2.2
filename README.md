@@ -3,7 +3,7 @@
 **Enterprise AI Governance & Compliance Platform**
 
 [![Deploy Status](https://img.shields.io/badge/deploy-live-success)](https://parity-v2.vercel.app)
-[![License](https://img.shields.io/badge/license-proprietary-blue)]()
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![React](https://img.shields.io/badge/React-18.3-61dafb)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6)](https://typescriptlang.org)
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-3ecf8e)](https://supabase.com)
@@ -325,7 +325,17 @@ CMD ["npm", "run", "preview"]
 
 ## Contributing
 
-This is a proprietary product. For partnership inquiries, contact:
+Contributions are welcome! Here's how you can help:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+For major changes, please open an issue first to discuss what you'd like to change.
+
+### Maintainer
 
 **Mohammad Zeeshan**
 GitHub: [@m-zest](https://github.com/m-zest)
@@ -334,8 +344,6 @@ GitHub: [@m-zest](https://github.com/m-zest)
 
 ## License
 
-Copyright 2024-2026 Parity AI. All rights reserved.
+MIT License - see [LICENSE](LICENSE) for details.
 
-Developed by **Mohammad Zeeshan**
-
-This software is proprietary and confidential. Unauthorized copying, distribution, or use is strictly prohibited.
+Copyright (c) 2024-2026 **Mohammad Zeeshan**
