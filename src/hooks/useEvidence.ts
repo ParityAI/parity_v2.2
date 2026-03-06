@@ -227,12 +227,11 @@ export async function uploadEvidenceFile(file: File): Promise<{ url: string; pat
     }
 
     // Create a unique file path: org_id/timestamp_filename
-    const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
     const filePath = `${profile.organization_id}/${fileName}`;
 
     // Upload the file
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("evidence")
       .upload(filePath, file, {
         cacheControl: "3600",

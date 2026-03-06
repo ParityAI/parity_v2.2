@@ -116,7 +116,9 @@ export function useBiasTestsByModel(modelId: string) {
         .eq("model_id", modelId)
         .order("test_date", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        return DEMO_BIAS_TESTS.filter(t => t.model_id === modelId);
+      }
       return data as BiasTest[];
     },
     enabled: !!modelId,

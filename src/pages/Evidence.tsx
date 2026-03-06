@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { Upload, Search, FileText, File, Download, Trash2, Info, Loader2, ExternalLink } from "lucide-react";
+import { Upload, Search, FileText, File, Trash2, Info, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
