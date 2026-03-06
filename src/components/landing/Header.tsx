@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
-import { Menu, Zap } from "lucide-react";
+import { Menu, Zap, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -9,7 +9,6 @@ const navItems = [
   { label: "Why Parity?", href: "#why-parity" },
   { label: "Products", href: "#products" },
   { label: "How it works", href: "#how-it-works" },
-  { label: "Testimonials", href: "#testimonials" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -55,11 +54,19 @@ export function Header() {
           ))}
         </nav>
 
-        {/* CTA Button & Theme Toggle */}
-        <div className="hidden items-center gap-2 md:flex">
+        {/* CTA Buttons & Theme Toggle */}
+        <div className="hidden items-center gap-3 md:flex">
           <ThemeToggle />
+          <Button
+            variant="outline"
+            className="rounded-full border-border/50 px-5 text-sm font-medium"
+            onClick={() => window.open('mailto:hello@parityai.com?subject=Book a Demo', '_blank')}
+          >
+            <Calendar className="mr-2 h-4 w-4" />
+            Book a Demo
+          </Button>
           <Link to="/auth">
-            <Button 
+            <Button
               className="rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20"
             >
               Get Started
@@ -89,8 +96,19 @@ export function Header() {
                     {item.label}
                   </a>
                 ))}
+                <Button
+                  variant="outline"
+                  className="mt-4 w-full rounded-full border-border/50"
+                  onClick={() => {
+                    window.open('mailto:hello@parityai.com?subject=Book a Demo', '_blank');
+                    setIsOpen(false);
+                  }}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Book a Demo
+                </Button>
                 <Link to="/auth" onClick={() => setIsOpen(false)}>
-                  <Button className="mt-4 w-full rounded-full bg-primary text-primary-foreground">
+                  <Button className="w-full rounded-full bg-primary text-primary-foreground">
                     Get Started
                   </Button>
                 </Link>
