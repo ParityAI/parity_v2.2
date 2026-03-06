@@ -176,3 +176,12 @@ export function useUpdateAssessment() {
     },
   });
 }
+
+// Combined hook for Reporting page
+export function useCompliance() {
+  const { data: frameworks = [] } = useComplianceFrameworks();
+  const { data: assessments = [] } = useComplianceAssessments();
+  const { data: checklists = [] } = useAllFrameworkChecklists();
+
+  return { frameworks, assessments, checklists };
+}

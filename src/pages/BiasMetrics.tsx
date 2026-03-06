@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, AlertTriangle, CheckCircle, Info, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, Search, AlertTriangle, CheckCircle, Info, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import {
   PieChart,
@@ -44,79 +44,22 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import {
+  useBiasTests,
+  useCreateBiasTest,
+  useDeleteBiasTest,
+  BiasTestResult,
+} from "@/hooks/useBiasTests";
+import { useModels } from "@/hooks/useModels";
 
-interface BiasTest {
-  id: string;
-  modelName: string;
-  testType: "adverse_impact" | "demographic_parity" | "equalized_odds" | "calibration";
-  protectedAttribute: string;
-  result: "pass" | "fail" | "warning";
-  score: number;
-  threshold: number;
-  testDate: string;
-  testedBy: string;
-  notes: string;
-}
-
-const initialTests: BiasTest[] = [
-  {
-    id: "1",
-    modelName: "HireScore",
-    testType: "adverse_impact",
-    protectedAttribute: "Gender",
-    result: "pass",
-    score: 0.85,
-    threshold: 0.8,
-    testDate: "2026-01-15",
-    testedBy: "John Doe",
-    notes: "Adverse Impact Ratio within acceptable range",
-  },
-  {
-    id: "2",
-    modelName: "HireScore",
-    testType: "adverse_impact",
-    protectedAttribute: "Race/Ethnicity",
-    result: "fail",
-    score: 0.72,
-    threshold: 0.8,
-    testDate: "2026-01-15",
-    testedBy: "John Doe",
-    notes: "AIR below 0.8 threshold - requires mitigation",
-  },
-  {
-    id: "3",
-    modelName: "CandidateRank",
-    testType: "demographic_parity",
-    protectedAttribute: "Age",
-    result: "warning",
-    score: 0.81,
-    threshold: 0.8,
-    testDate: "2026-01-14",
-    testedBy: "Jane Smith",
-    notes: "Close to threshold - monitoring recommended",
-  },
-  {
-    id: "4",
-    modelName: "ResumeParser",
-    testType: "equalized_odds",
-    protectedAttribute: "Gender",
-    result: "pass",
-    score: 0.92,
-    threshold: 0.85,
-    testDate: "2026-01-12",
-    testedBy: "Mike Johnson",
-    notes: "Strong performance across groups",
-  },
-];
-
-const testTypeLabels = {
+const testTypeLabels: Record<string, string> = {
   adverse_impact: "Adverse Impact Ratio (AIR)",
   demographic_parity: "Demographic Parity",
   equalized_odds: "Equalized Odds",
   calibration: "Calibration",
 };
 
-const resultColors = {
+const resultColors: Record<BiasTestResult, string> = {
   pass: "bg-green-100 text-green-700",
   fail: "bg-red-100 text-red-700",
   warning: "bg-yellow-100 text-yellow-700",
@@ -125,16 +68,19 @@ const resultColors = {
 const CHART_COLORS = ["#10b981", "#ef4444", "#f59e0b"];
 
 export default function BiasMetrics() {
-  const [tests, setTests] = useState<BiasTest[]>(initialTests);
+  const { data: tests = [], isLoading } = useBiasTests();
+  const { data: models = [] } = useModels();
+  const createBiasTest = useCreateBiasTest();
+  const deleteBiasTest = useDeleteBiasTest();
+
   const [search, setSearch] = useState("");
   const [resultFilter, setResultFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    modelName: "",
-    testType: "adverse_impact" as BiasTest["testType"],
-    protectedAttribute: "",
+    model_id: "",
+    test_type: "adverse_impact",
+    protected_attribute: "",
     score: 0,
     threshold: 0.8,
     notes: "",
@@ -142,9 +88,10 @@ export default function BiasMetrics() {
 
   const filteredTests = useMemo(() => {
     return tests.filter((test) => {
+      const modelName = test.models?.name || "";
       const matchesSearch =
-        test.modelName.toLowerCase().includes(search.toLowerCase()) ||
-        test.protectedAttribute.toLowerCase().includes(search.toLowerCase());
+        modelName.toLowerCase().includes(search.toLowerCase()) ||
+        test.protected_attribute.toLowerCase().includes(search.toLowerCase());
       const matchesResult = resultFilter === "all" || test.result === resultFilter;
       return matchesSearch && matchesResult;
     });
@@ -164,20 +111,20 @@ export default function BiasMetrics() {
   ];
 
   const modelStats = useMemo(() => {
-    const models = [...new Set(tests.map(t => t.modelName))];
-    return models.map(model => ({
-      name: model,
-      pass: tests.filter(t => t.modelName === model && t.result === "pass").length,
-      fail: tests.filter(t => t.modelName === model && t.result === "fail").length,
-      warning: tests.filter(t => t.modelName === model && t.result === "warning").length,
+    const modelNames = [...new Set(tests.map(t => t.models?.name).filter(Boolean))];
+    return modelNames.map(modelName => ({
+      name: modelName,
+      pass: tests.filter(t => t.models?.name === modelName && t.result === "pass").length,
+      fail: tests.filter(t => t.models?.name === modelName && t.result === "fail").length,
+      warning: tests.filter(t => t.models?.name === modelName && t.result === "warning").length,
     }));
   }, [tests]);
 
   const handleAddNew = () => {
     setFormData({
-      modelName: "",
-      testType: "adverse_impact",
-      protectedAttribute: "",
+      model_id: "",
+      test_type: "adverse_impact",
+      protected_attribute: "",
       score: 0,
       threshold: 0.8,
       notes: "",
@@ -185,32 +132,38 @@ export default function BiasMetrics() {
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!formData.modelName || !formData.protectedAttribute) {
-      toast({ title: "Error", description: "Model name and protected attribute are required", variant: "destructive" });
+  const handleSave = async () => {
+    if (!formData.model_id || !formData.protected_attribute) {
       return;
     }
 
-    const result: BiasTest["result"] = formData.score >= formData.threshold ? "pass"
+    const result: BiasTestResult = formData.score >= formData.threshold ? "pass"
       : formData.score >= formData.threshold * 0.95 ? "warning"
       : "fail";
 
-    const newTest: BiasTest = {
-      id: Date.now().toString(),
-      ...formData,
+    await createBiasTest.mutateAsync({
+      model_id: formData.model_id,
+      test_type: formData.test_type,
+      protected_attribute: formData.protected_attribute,
       result,
-      testDate: new Date().toISOString().split("T")[0],
-      testedBy: "Current User",
-    };
-    setTests([newTest, ...tests]);
-    toast({ title: "Bias test recorded", description: `Test result: ${result.toUpperCase()}` });
+      score: formData.score,
+      threshold: formData.threshold,
+      details: formData.notes ? { notes: formData.notes } : null,
+    });
     setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setTests(tests.filter(t => t.id !== id));
-    toast({ title: "Test deleted", description: "The bias test record has been removed." });
+  const handleDelete = async (id: string) => {
+    await deleteBiasTest.mutateAsync(id);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -377,37 +330,47 @@ export default function BiasMetrics() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTests.map((test) => (
-              <TableRow key={test.id}>
-                <TableCell className="font-medium">{test.modelName}</TableCell>
-                <TableCell>{testTypeLabels[test.testType]}</TableCell>
-                <TableCell>{test.protectedAttribute}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span className={test.score >= test.threshold ? "text-green-600" : "text-red-600"}>
-                      {test.score.toFixed(2)}
-                    </span>
-                    {test.score >= test.threshold ? (
-                      <TrendingUp className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-red-600" />
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{test.threshold.toFixed(2)}</TableCell>
-                <TableCell>
-                  <Badge className={resultColors[test.result]}>
-                    {test.result.toUpperCase()}
-                  </Badge>
-                </TableCell>
-                <TableCell>{format(new Date(test.testDate), "MMM d, yyyy")}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(test.id)}>
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {filteredTests.map((test) => {
+              const score = test.score ?? 0;
+              const threshold = test.threshold ?? 0.8;
+              return (
+                <TableRow key={test.id}>
+                  <TableCell className="font-medium">{test.models?.name || "Unknown Model"}</TableCell>
+                  <TableCell>{testTypeLabels[test.test_type] || test.test_type}</TableCell>
+                  <TableCell>{test.protected_attribute}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className={score >= threshold ? "text-green-600" : "text-red-600"}>
+                        {score.toFixed(2)}
+                      </span>
+                      {score >= threshold ? (
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{threshold.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Badge className={resultColors[test.result]}>
+                      {test.result.toUpperCase()}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{test.test_date ? format(new Date(test.test_date), "MMM d, yyyy") : "-"}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600"
+                      onClick={() => handleDelete(test.id)}
+                      disabled={deleteBiasTest.isPending}
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
             {filteredTests.length === 0 && (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
@@ -430,20 +393,29 @@ export default function BiasMetrics() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="modelName">Model Name</Label>
-              <Input
-                id="modelName"
-                value={formData.modelName}
-                onChange={(e) => setFormData({ ...formData, modelName: e.target.value })}
-                placeholder="e.g., HireScore"
-              />
+              <Label>Model</Label>
+              <Select
+                value={formData.model_id}
+                onValueChange={(value) => setFormData({ ...formData, model_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {models.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label>Test Type</Label>
                 <Select
-                  value={formData.testType}
-                  onValueChange={(value: BiasTest["testType"]) => setFormData({ ...formData, testType: value })}
+                  value={formData.test_type}
+                  onValueChange={(value) => setFormData({ ...formData, test_type: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -457,11 +429,11 @@ export default function BiasMetrics() {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="protectedAttribute">Protected Attribute</Label>
+                <Label htmlFor="protected_attribute">Protected Attribute</Label>
                 <Input
-                  id="protectedAttribute"
-                  value={formData.protectedAttribute}
-                  onChange={(e) => setFormData({ ...formData, protectedAttribute: e.target.value })}
+                  id="protected_attribute"
+                  value={formData.protected_attribute}
+                  onChange={(e) => setFormData({ ...formData, protected_attribute: e.target.value })}
                   placeholder="e.g., Gender, Race"
                 />
               </div>
@@ -494,7 +466,7 @@ export default function BiasMetrics() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="notes">Notes</Label>
-              <Input
+              <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -504,7 +476,13 @@ export default function BiasMetrics() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>Record Test</Button>
+            <Button
+              onClick={handleSave}
+              disabled={createBiasTest.isPending || !formData.model_id || !formData.protected_attribute}
+            >
+              {createBiasTest.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Record Test
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

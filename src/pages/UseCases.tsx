@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, Target, TrendingUp } from "lucide-react";
+import { Plus, Search, Target, TrendingUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,102 +30,57 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
+import {
+  useUseCases,
+  useCreateUseCase,
+  useUpdateUseCase,
+  useDeleteUseCase,
+  UseCase,
+  UseCaseStatus,
+  UseCaseRisk,
+} from "@/hooks/useUseCases";
 
-interface UseCase {
-  id: string;
-  name: string;
-  description: string;
-  status: "not_started" | "in_progress" | "completed" | "on_hold";
-  progress: number;
-  riskLevel: "low" | "medium" | "high";
-  department: string;
-  owner: string;
-  linkedModels: string[];
-  updatedAt: string;
-  createdAt: string;
-}
-
-const initialUseCases: UseCase[] = [
-  {
-    id: "1",
-    name: "AI Recruitment Screening Platform",
-    description: "Automated resume screening and candidate ranking system for hiring process",
-    status: "not_started",
-    progress: 0,
-    riskLevel: "high",
-    department: "Human Resources",
-    owner: "John Doe",
-    linkedModels: ["HireScore", "CandidateRank"],
-    updatedAt: "2026-01-17",
-    createdAt: "2026-01-10",
-  },
-  {
-    id: "2",
-    name: "Student Performance Prediction",
-    description: "ML model to predict student academic performance and identify at-risk students",
-    status: "in_progress",
-    progress: 45,
-    riskLevel: "medium",
-    department: "Education",
-    owner: "Sarah Wilson",
-    linkedModels: ["PerformancePredictor"],
-    updatedAt: "2026-01-17",
-    createdAt: "2026-01-05",
-  },
-  {
-    id: "3",
-    name: "Customer Churn Analysis",
-    description: "Predictive model to identify customers likely to churn",
-    status: "completed",
-    progress: 100,
-    riskLevel: "low",
-    department: "Marketing",
-    owner: "Mike Johnson",
-    linkedModels: ["ChurnPredictor"],
-    updatedAt: "2026-01-15",
-    createdAt: "2025-12-01",
-  },
-];
-
-const statusColors = {
+const statusColors: Record<UseCaseStatus, string> = {
   not_started: "bg-gray-100 text-gray-800",
   in_progress: "bg-blue-100 text-blue-800",
   completed: "bg-green-100 text-green-800",
   on_hold: "bg-yellow-100 text-yellow-800",
 };
 
-const riskColors = {
+const riskColors: Record<UseCaseRisk, string> = {
   low: "bg-green-100 text-green-700",
   medium: "bg-yellow-100 text-yellow-700",
   high: "bg-red-100 text-red-700",
 };
 
 export default function UseCases() {
-  const [useCases, setUseCases] = useState<UseCase[]>(initialUseCases);
+  const { data: useCases = [], isLoading } = useUseCases();
+  const createUseCase = useCreateUseCase();
+  const updateUseCase = useUpdateUseCase();
+  const deleteUseCase = useDeleteUseCase();
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUseCase, setEditingUseCase] = useState<UseCase | null>(null);
-  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    status: "not_started" as UseCase["status"],
+    status: "not_started" as UseCaseStatus,
     progress: 0,
-    riskLevel: "medium" as UseCase["riskLevel"],
+    risk_level: "medium" as UseCaseRisk,
     department: "",
-    owner: "",
+    owner_name: "",
   });
 
   const filteredUseCases = useMemo(() => {
     return useCases.filter((uc) => {
       const matchesSearch =
         uc.name.toLowerCase().includes(search.toLowerCase()) ||
-        uc.description.toLowerCase().includes(search.toLowerCase()) ||
-        uc.owner.toLowerCase().includes(search.toLowerCase());
+        (uc.description?.toLowerCase() || "").includes(search.toLowerCase()) ||
+        (uc.owner_name?.toLowerCase() || "").includes(search.toLowerCase());
       const matchesStatus = statusFilter === "all" || uc.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
@@ -136,7 +91,7 @@ export default function UseCases() {
     notStarted: useCases.filter(u => u.status === "not_started").length,
     inProgress: useCases.filter(u => u.status === "in_progress").length,
     completed: useCases.filter(u => u.status === "completed").length,
-    highRisk: useCases.filter(u => u.riskLevel === "high").length,
+    highRisk: useCases.filter(u => u.risk_level === "high").length,
   }), [useCases]);
 
   const handleAddNew = () => {
@@ -146,9 +101,9 @@ export default function UseCases() {
       description: "",
       status: "not_started",
       progress: 0,
-      riskLevel: "medium",
+      risk_level: "medium",
       department: "",
-      owner: "",
+      owner_name: "",
     });
     setDialogOpen(true);
   };
@@ -157,47 +112,48 @@ export default function UseCases() {
     setEditingUseCase(useCase);
     setFormData({
       name: useCase.name,
-      description: useCase.description,
+      description: useCase.description || "",
       status: useCase.status,
       progress: useCase.progress,
-      riskLevel: useCase.riskLevel,
-      department: useCase.department,
-      owner: useCase.owner,
+      risk_level: useCase.risk_level,
+      department: useCase.department || "",
+      owner_name: useCase.owner_name || "",
     });
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!formData.name) {
-      toast({ title: "Error", description: "Name is required", variant: "destructive" });
-      return;
-    }
+  const handleSave = async () => {
+    if (!formData.name) return;
 
-    const now = new Date().toISOString().split("T")[0];
+    const useCaseData = {
+      name: formData.name,
+      description: formData.description || null,
+      status: formData.status,
+      progress: formData.progress,
+      risk_level: formData.risk_level,
+      department: formData.department || null,
+      owner_name: formData.owner_name || null,
+    };
+
     if (editingUseCase) {
-      setUseCases(useCases.map(u => u.id === editingUseCase.id
-        ? { ...u, ...formData, updatedAt: now }
-        : u
-      ));
-      toast({ title: "Use case updated", description: "The use case has been updated successfully." });
+      await updateUseCase.mutateAsync({ id: editingUseCase.id, ...useCaseData });
     } else {
-      const newUseCase: UseCase = {
-        id: Date.now().toString(),
-        ...formData,
-        linkedModels: [],
-        updatedAt: now,
-        createdAt: now,
-      };
-      setUseCases([newUseCase, ...useCases]);
-      toast({ title: "Use case created", description: "The use case has been created successfully." });
+      await createUseCase.mutateAsync(useCaseData);
     }
     setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setUseCases(useCases.filter(u => u.id !== id));
-    toast({ title: "Use case deleted", description: "The use case has been removed." });
+  const handleDelete = async (id: string) => {
+    await deleteUseCase.mutateAsync(id);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -319,23 +275,29 @@ export default function UseCases() {
                 </TableCell>
                 <TableCell>
                   <Badge className={statusColors[useCase.status]}>
-                    {useCase.status.replace("_", " ")}
+                    {useCase.status.replace(/_/g, " ")}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={riskColors[useCase.riskLevel]}>
-                    {useCase.riskLevel}
+                  <Badge className={riskColors[useCase.risk_level]}>
+                    {useCase.risk_level}
                   </Badge>
                 </TableCell>
-                <TableCell>{useCase.owner}</TableCell>
+                <TableCell>{useCase.owner_name || "-"}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {formatDistanceToNow(new Date(useCase.updatedAt), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(useCase.updated_at), { addSuffix: true })}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="sm" onClick={() => handleEdit(useCase)}>
                     Edit
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-red-600" onClick={() => handleDelete(useCase.id)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600"
+                    onClick={() => handleDelete(useCase.id)}
+                    disabled={deleteUseCase.isPending}
+                  >
                     Delete
                   </Button>
                 </TableCell>
@@ -385,7 +347,7 @@ export default function UseCases() {
                 <Label>Status</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value: UseCase["status"]) => setFormData({ ...formData, status: value })}
+                  onValueChange={(value: UseCaseStatus) => setFormData({ ...formData, status: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -401,8 +363,8 @@ export default function UseCases() {
               <div className="grid gap-2">
                 <Label>Risk Level</Label>
                 <Select
-                  value={formData.riskLevel}
-                  onValueChange={(value: UseCase["riskLevel"]) => setFormData({ ...formData, riskLevel: value })}
+                  value={formData.risk_level}
+                  onValueChange={(value: UseCaseRisk) => setFormData({ ...formData, risk_level: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -417,11 +379,11 @@ export default function UseCases() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="owner">Owner</Label>
+                <Label htmlFor="owner_name">Owner</Label>
                 <Input
-                  id="owner"
-                  value={formData.owner}
-                  onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
+                  id="owner_name"
+                  value={formData.owner_name}
+                  onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
                   placeholder="Owner name"
                 />
               </div>
@@ -449,7 +411,15 @@ export default function UseCases() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>{editingUseCase ? "Update" : "Create"}</Button>
+            <Button
+              onClick={handleSave}
+              disabled={createUseCase.isPending || updateUseCase.isPending || !formData.name}
+            >
+              {(createUseCase.isPending || updateUseCase.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {editingUseCase ? "Update" : "Create"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

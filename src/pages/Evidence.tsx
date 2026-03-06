@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Upload, Search, FileText, File, Download, Trash2, Info, Loader2 } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { Upload, Search, FileText, File, Trash2, Info, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,8 +36,9 @@ import {
   useCreateEvidence,
   useUpdateEvidence,
   useDeleteEvidence,
-  type Evidence as EvidenceItem,
-  type EvidenceType,
+  useUploadEvidence,
+  Evidence,
+  EvidenceType,
 } from "@/hooks/useEvidence";
 
 const typeIcons: Record<string, typeof FileText> = {
@@ -62,23 +63,33 @@ const typeColors: Record<EvidenceType, string> = {
   other: "bg-gray-100 text-gray-700",
 };
 
-export default function Evidence() {
+function formatFileSize(bytes: number | null): string {
+  if (!bytes) return "-";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export default function EvidencePage() {
   const { data: evidence = [], isLoading } = useEvidence();
   const createEvidence = useCreateEvidence();
   const updateEvidence = useUpdateEvidence();
   const deleteEvidence = useDeleteEvidence();
+  const uploadEvidence = useUploadEvidence();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingEvidence, setEditingEvidence] = useState<EvidenceItem | null>(null);
+  const [editingEvidence, setEditingEvidence] = useState<Evidence | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     evidence_type: "document" as EvidenceType,
     category: "",
-    file_type: "",
     expires_at: "",
   });
 
@@ -102,28 +113,40 @@ export default function Evidence() {
 
   const handleAddNew = () => {
     setEditingEvidence(null);
+    setSelectedFile(null);
     setFormData({
       name: "",
       description: "",
       evidence_type: "document",
       category: "",
-      file_type: "",
       expires_at: "",
     });
     setDialogOpen(true);
   };
 
-  const handleEdit = (item: EvidenceItem) => {
+  const handleEdit = (item: Evidence) => {
     setEditingEvidence(item);
+    setSelectedFile(null);
     setFormData({
       name: item.name,
       description: item.description || "",
       evidence_type: item.evidence_type,
       category: item.category || "",
-      file_type: item.file_type || "",
       expires_at: item.expires_at || "",
     });
     setDialogOpen(true);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      // Auto-fill name from filename if empty
+      if (!formData.name) {
+        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+        setFormData({ ...formData, name: nameWithoutExt });
+      }
+    }
   };
 
   const handleSave = async () => {
@@ -134,20 +157,31 @@ export default function Evidence() {
       description: formData.description || null,
       evidence_type: formData.evidence_type,
       category: formData.category || null,
-      file_type: formData.file_type || null,
       expires_at: formData.expires_at || null,
     };
 
     if (editingEvidence) {
+      // Update existing (file upload not supported for edits in this version)
       await updateEvidence.mutateAsync({ id: editingEvidence.id, ...evidenceData });
+    } else if (selectedFile) {
+      // Create with file upload
+      await uploadEvidence.mutateAsync({ file: selectedFile, evidence: evidenceData });
     } else {
+      // Create without file (metadata only)
       await createEvidence.mutateAsync(evidenceData);
     }
     setDialogOpen(false);
+    setSelectedFile(null);
   };
 
   const handleDelete = async (id: string) => {
     await deleteEvidence.mutateAsync(id);
+  };
+
+  const handleDownload = (item: Evidence) => {
+    if (item.file_url) {
+      window.open(item.file_url, "_blank");
+    }
   };
 
   if (isLoading) {
@@ -157,6 +191,9 @@ export default function Evidence() {
       </div>
     );
   }
+
+  const isUploading = uploadEvidence.isPending;
+  const isSaving = createEvidence.isPending || updateEvidence.isPending || isUploading;
 
   return (
     <div className="space-y-6">
@@ -263,7 +300,7 @@ export default function Evidence() {
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Linked To</TableHead>
+              <TableHead>Size</TableHead>
               <TableHead>Uploaded</TableHead>
               <TableHead>Expires</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -271,7 +308,7 @@ export default function Evidence() {
           </TableHeader>
           <TableBody>
             {filteredEvidence.map((item) => {
-              const Icon = typeIcons[item.evidence_type] || File;
+              const Icon = typeIcons[item.file_type || ""] || typeIcons[item.evidence_type] || File;
               return (
                 <TableRow key={item.id}>
                   <TableCell>
@@ -295,8 +332,8 @@ export default function Evidence() {
                       <Badge variant="outline">{item.category}</Badge>
                     ) : "-"}
                   </TableCell>
-                  <TableCell>
-                    {item.models?.name || item.vendors?.name || "-"}
+                  <TableCell className="text-muted-foreground">
+                    {formatFileSize(item.file_size)}
                   </TableCell>
                   <TableCell>
                     {format(new Date(item.created_at), "MMM d, yyyy")}
@@ -305,6 +342,16 @@ export default function Evidence() {
                     {item.expires_at ? format(new Date(item.expires_at), "MMM d, yyyy") : "-"}
                   </TableCell>
                   <TableCell className="text-right">
+                    {item.file_url && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownload(item)}
+                        title="Download/View file"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(item)}>
                       Edit
                     </Button>
@@ -338,10 +385,48 @@ export default function Evidence() {
           <DialogHeader>
             <DialogTitle>{editingEvidence ? "Edit Evidence" : "Upload Evidence"}</DialogTitle>
             <DialogDescription>
-              {editingEvidence ? "Update the evidence details." : "Add new evidence to the hub."}
+              {editingEvidence ? "Update the evidence details." : "Upload a file and add evidence details."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            {/* File Upload - only show for new evidence */}
+            {!editingEvidence && (
+              <div className="grid gap-2">
+                <Label>File</Label>
+                <div
+                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    accept=".pdf,.png,.jpg,.jpeg,.gif,.csv,.xlsx,.xls,.doc,.docx,.txt"
+                  />
+                  {selectedFile ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      <span className="font-medium">{selectedFile.name}</span>
+                      <span className="text-muted-foreground">
+                        ({formatFileSize(selectedFile.size)})
+                      </span>
+                    </div>
+                  ) : (
+                    <div>
+                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Click to select a file or drag and drop
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PDF, Images, CSV, Excel, Word (max 50MB)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="grid gap-2">
               <Label htmlFor="name">Name</Label>
               <Input
@@ -390,37 +475,26 @@ export default function Evidence() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="file_type">File Type</Label>
-                <Input
-                  id="file_type"
-                  value={formData.file_type}
-                  onChange={(e) => setFormData({ ...formData, file_type: e.target.value })}
-                  placeholder="e.g., pdf, csv, xlsx"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="expires_at">Expiration Date</Label>
-                <Input
-                  id="expires_at"
-                  type="date"
-                  value={formData.expires_at}
-                  onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="expires_at">Expiration Date</Label>
+              <Input
+                id="expires_at"
+                type="date"
+                value={formData.expires_at}
+                onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button
               onClick={handleSave}
-              disabled={createEvidence.isPending || updateEvidence.isPending}
+              disabled={isSaving || !formData.name}
             >
-              {(createEvidence.isPending || updateEvidence.isPending) && (
+              {isSaving && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {editingEvidence ? "Update" : "Upload"}
+              {editingEvidence ? "Update" : selectedFile ? "Upload" : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>
