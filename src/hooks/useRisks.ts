@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export type RiskSeverity = "negligible" | "minor" | "moderate" | "major" | "critical";
@@ -49,22 +48,13 @@ export interface RiskUpdate extends Partial<RiskInsert> {
   id: string;
 }
 
-// Sample data for demo when table doesn't exist
 const DEMO_RISKS: Risk[] = [
   {
-    id: "demo-1",
-    organization_id: "demo-org",
-    title: "Model Bias in Hiring Algorithm",
-    description: "Potential demographic bias detected in resume screening model",
-    category: "Fairness",
-    severity: "critical",
-    likelihood: "medium",
-    impact: "Regulatory fines and reputational damage",
-    mitigation_status: "in_progress",
-    mitigation_plan: "Conduct comprehensive bias audit and retrain model",
-    owner_id: null,
-    model_id: null,
-    vendor_id: null,
+    id: "demo-1", organization_id: "demo-org", title: "Model Bias in Hiring Algorithm",
+    description: "Potential demographic bias detected", category: "Fairness",
+    severity: "critical", likelihood: "medium", impact: "Regulatory fines",
+    mitigation_status: "in_progress", mitigation_plan: "Conduct bias audit",
+    owner_id: null, model_id: null, vendor_id: null,
     identified_date: new Date(Date.now() - 604800000).toISOString(),
     review_date: new Date(Date.now() + 604800000).toISOString(),
     created_at: new Date(Date.now() - 604800000).toISOString(),
@@ -72,139 +62,64 @@ const DEMO_RISKS: Risk[] = [
     profiles: { full_name: "Sarah Johnson" },
   },
   {
-    id: "demo-2",
-    organization_id: "demo-org",
-    title: "Data Privacy Compliance Gap",
-    description: "Training data may contain PII without proper consent",
-    category: "Privacy",
-    severity: "major",
-    likelihood: "high",
-    impact: "GDPR violation penalties up to 4% of revenue",
-    mitigation_status: "not_started",
-    mitigation_plan: "Audit training datasets and implement data anonymization",
-    owner_id: null,
-    model_id: null,
-    vendor_id: null,
+    id: "demo-2", organization_id: "demo-org", title: "Data Privacy Compliance Gap",
+    description: "Training data may contain PII", category: "Privacy",
+    severity: "major", likelihood: "high", impact: "GDPR violation penalties",
+    mitigation_status: "not_started", mitigation_plan: "Audit training datasets",
+    owner_id: null, model_id: null, vendor_id: null,
     identified_date: new Date(Date.now() - 259200000).toISOString(),
     review_date: new Date(Date.now() + 1209600000).toISOString(),
     created_at: new Date(Date.now() - 259200000).toISOString(),
     updated_at: new Date().toISOString(),
     profiles: { full_name: "Michael Chen" },
   },
-  {
-    id: "demo-3",
-    organization_id: "demo-org",
-    title: "Third-Party Model Dependency",
-    description: "Critical business process relies on external API with no SLA",
-    category: "Operational",
-    severity: "moderate",
-    likelihood: "low",
-    impact: "Service disruption affecting customer experience",
-    mitigation_status: "completed",
-    mitigation_plan: "Negotiate SLA and implement fallback mechanism",
-    owner_id: null,
-    model_id: null,
-    vendor_id: null,
-    identified_date: new Date(Date.now() - 1209600000).toISOString(),
-    review_date: null,
-    created_at: new Date(Date.now() - 1209600000).toISOString(),
-    updated_at: new Date().toISOString(),
-    profiles: { full_name: "Emily Davis" },
-  },
 ];
 
 export function useRisks() {
   return useQuery({
     queryKey: ["risks"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("risks")
-        .select("*, profiles:owner_id(full_name), models(name), vendors(name)")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.log("Using demo risks data");
-        return DEMO_RISKS;
-      }
-      return data as Risk[];
-    },
+    queryFn: async () => DEMO_RISKS,
   });
 }
 
 export function useCreateRisk() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (risk: RiskInsert) => {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("organization_id")
-        .single();
-
-      const { data, error } = await supabase
-        .from("risks")
-        .insert({
-          ...risk,
-          organization_id: profile?.organization_id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_risk: RiskInsert) => {
+      throw new Error("Database table 'risks' not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["risks"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       toast.success("Risk created successfully");
     },
-    onError: (error) => {
-      toast.error("Failed to create risk: " + error.message);
-    },
+    onError: (error) => toast.error("Failed to create risk: " + error.message),
   });
 }
 
 export function useUpdateRisk() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ id, ...updates }: RiskUpdate) => {
-      const { data, error } = await supabase
-        .from("risks")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+    mutationFn: async (_update: RiskUpdate) => {
+      throw new Error("Database table 'risks' not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["risks"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       toast.success("Risk updated successfully");
     },
-    onError: (error) => {
-      toast.error("Failed to update risk: " + error.message);
-    },
+    onError: (error) => toast.error("Failed to update risk: " + error.message),
   });
 }
 
 export function useDeleteRisk() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("risks").delete().eq("id", id);
-      if (error) throw error;
+    mutationFn: async (_id: string) => {
+      throw new Error("Database table 'risks' not yet created");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["risks"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       toast.success("Risk deleted successfully");
     },
-    onError: (error) => {
-      toast.error("Failed to delete risk: " + error.message);
-    },
+    onError: (error) => toast.error("Failed to delete risk: " + error.message),
   });
 }
