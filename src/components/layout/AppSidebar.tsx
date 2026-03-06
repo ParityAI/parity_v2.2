@@ -57,7 +57,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 const products = [
   { name: "FairHire AI", icon: Users, href: "/dashboard", active: true },
-  { name: "MedParity", icon: Heart, href: "/products/medparity", comingSoon: true },
+  { name: "MedParity", icon: Heart, href: "/products/medparity" },
   { name: "FinParity", icon: DollarSign, href: "/products/finparity" },
   { name: "ContentGuard", icon: Tv, href: "/products/contentguard", comingSoon: true },
   { name: "Enterprise", icon: Building2, href: "/products/enterprise", comingSoon: true },

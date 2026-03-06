@@ -24,6 +24,7 @@ import Transparency from "./pages/Transparency";
 import Incidents from "./pages/Incidents";
 import UserManagement from "./pages/UserManagement";
 import FinParity from "./pages/FinParity";
+import MedParity from "./pages/MedParity";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/transparency" element={<Transparency />} />
               <Route path="/settings/users" element={<UserManagement />} />
               <Route path="/products/finparity" element={<FinParity />} />
+              <Route path="/products/medparity" element={<MedParity />} />
             </Route>
 
             {/* Catch-all */}
