@@ -144,7 +144,7 @@ const Auth = () => {
           <CardContent className="pt-6">
             <div className="text-center space-y-3">
               <p className="text-sm font-medium text-foreground">
-                🚀 Quick Demo Access for Investors
+                 Quick Demo Access 
               </p>
               <p className="text-xs text-muted-foreground">
                 One-click login with full admin access to explore all features
