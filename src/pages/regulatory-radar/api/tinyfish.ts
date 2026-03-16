@@ -91,7 +91,7 @@ export async function runAgent(
       },
       body: JSON.stringify({
         url: source.url,
-        prompt: source.prompt,
+        goal: source.prompt,
       }),
     });
 
