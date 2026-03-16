@@ -33,6 +33,7 @@ import SystemCardGenerator from "./pages/SystemCardGenerator";
 import FrameworkComparison from "./pages/FrameworkComparison";
 import RiskHeatmap from "./pages/RiskHeatmap";
 import IncidentDisclosure from "./pages/IncidentDisclosure";
+import RegulatoryRadarPage from "./pages/regulatory-radar";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/use-cases" element={<UseCases />} />
               <Route path="/vendors" element={<Vendors />} />
               <Route path="/models" element={<Models />} />
+              <Route path="/regulatory-radar" element={<RegulatoryRadarPage />} />
               <Route path="/risks" element={<Risks />} />
               <Route path="/bias-metrics" element={<BiasMetrics />} />
               <Route path="/compliance" element={<Compliance />} />

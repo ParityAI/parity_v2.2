@@ -29,6 +29,7 @@ import {
   Grid3X3,
   Megaphone,
   Globe,
+  Radar,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +81,7 @@ const discoveryNav = [
 ];
 
 const assuranceNav = [
+  { name: "RegulatoryRadar", icon: Radar, href: "/regulatory-radar" },
   { name: "Risk Management", icon: AlertTriangle, href: "/risks" },
   { name: "Bias & Fairness", icon: Scale, href: "/bias-metrics" },
   { name: "Compliance", icon: Shield, href: "/compliance" },
