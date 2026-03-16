@@ -5,7 +5,7 @@
 [![Deploy Status](https://img.shields.io/badge/deploy-live-success)](https://parity-v2.vercel.app)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen)](#verification)
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](#verification)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 [![React](https://img.shields.io/badge/React-18.3-61dafb)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6)](https://typescriptlang.org)
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-3ecf8e)](https://supabase.com)
@@ -539,6 +539,6 @@ GitHub: [@m-zest](https://github.com/m-zest)
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+Proprietary License - see [LICENSE](LICENSE) for details.
 
 Copyright (c) 2024-2026 **Mohammad Zeeshan**
