@@ -1,6 +1,7 @@
 import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
 import { KeyStats } from "@/components/landing/KeyStats";
+import { RegulatoryRadarShowcase } from "@/components/landing/RegulatoryRadarShowcase";
 import { Tagline } from "@/components/landing/Tagline";
 import { WhyParity } from "@/components/landing/WhyParity";
 import { PublicSector } from "@/components/landing/PublicSector";
@@ -20,6 +21,7 @@ const Landing = () => {
       <main className="flex-1">
         <Hero />
         <KeyStats />
+        <RegulatoryRadarShowcase />
         <Tagline />
         <WhyParity />
         <PublicSector />
