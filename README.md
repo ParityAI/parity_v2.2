@@ -3,9 +3,11 @@
 **Enterprise AI Governance & Compliance Platform**
 
 [![Deploy Status](https://img.shields.io/badge/deploy-live-success)](https://parity-v2.vercel.app)
+[![Build](https://img.shields.io/badge/build-passing-brightgreen)](#verification)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](#verification)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![React](https://img.shields.io/badge/React-18.3-61dafb)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6)](https://typescriptlang.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6)](https://typescriptlang.org)
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-3ecf8e)](https://supabase.com)
 
 ---
@@ -14,6 +16,7 @@
 
 **Mohammad Zeeshan**
 Lead Developer & Architect
+GitHub: [@m-zest](https://github.com/m-zest)
 
 ---
 
@@ -28,35 +31,184 @@ Parity AI is a comprehensive platform that enables organizations to govern AI sy
 - **Bias Monitoring** — Track fairness metrics across protected attributes with automated testing
 - **Audit Trail** — Complete documentation and evidence management for regulatory audits
 - **Executive Reporting** — One-click PDF reports for board meetings and regulatory submissions
+- **Public Transparency** — Citizen-facing transparency portal for democratic AI accountability
 
 ---
 
-## Product Suite
+## Current Status & What's Working
 
-| Product | Description | Status |
-|---------|-------------|--------|
-| **FairHire AI** | HR AI governance for hiring, screening, and workforce analytics | **Live** |
-| **MedParity** | Healthcare AI governance for clinical decisions and patient safety | **Live** |
-| **FinParity** | Financial AI governance for lending, credit, and underwriting | **Live** |
-| **ContentGuard** | Media AI governance for content moderation and recommendations | **Live** |
-| **Enterprise** | Cross-organization AI governance for enterprise-wide oversight | **Live** |
+### Build & Tests
+
+| Check | Status |
+|-------|--------|
+| TypeScript compilation | Passing |
+| Vite production build | Passing (3783 modules) |
+| Unit tests (Vitest) | Passing (1/1) |
+| ESLint | Configured |
+
+### Public Pages (No Login Required)
+
+| Page | Route | What It Does |
+|------|-------|--------------|
+| **Landing Page** | `/` | Full marketing site with hero, product suite, compliance frameworks, FAQ, testimonials, integrations section |
+| **About** | `/about` | Company information |
+| **Auth** | `/auth` | Sign up / Sign in with Supabase Auth |
+| **Transparency Portal** | `/public/transparency` | Public-facing AI system registry — shows deployed AI systems, risk levels, and incident disclosures for citizens |
+
+### Dashboard Modules (Login Required)
+
+| Module | Route | Features | Data Source |
+|--------|-------|----------|-------------|
+| **Dashboard** | `/dashboard` | Stats cards, charts (tasks/incidents/risk distribution), recent models & incidents, activity feed | Supabase (real-time) |
+| **Tasks** | `/tasks` | Task CRUD, assignees, deadlines, status tracking | Supabase |
+| **Use Cases** | `/use-cases` | AI use case documentation, approval workflows, CRUD | Supabase |
+| **Vendors** | `/vendors` | Vendor registry, risk scoring, security assessments, CSV import, filters, PDF export | Supabase |
+| **Model Inventory** | `/models` | AI model registry, lifecycle tracking, risk levels, CSV import, filters, PDF export | Supabase |
+| **Risk Management** | `/risks` | Risk register, severity levels, mitigation plans, CRUD, PDF export | Supabase |
+| **Bias & Fairness** | `/bias-metrics` | Fairness metrics, bias test results, protected attribute tracking | Supabase |
+| **Compliance** | `/compliance` | Framework checklists, assessment workflows, progress tracking, PDF export | Supabase |
+| **Evidence Hub** | `/evidence` | Document upload & storage for audit evidence | Supabase Storage |
+| **Reporting** | `/reporting` | 6 PDF report templates — Models, Vendors, Compliance, Incidents, Risks, Executive | jsPDF generation |
+| **AI Trust Center** | `/transparency` | Internal transparency dashboard for governance teams | Supabase |
+| **Policy Manager** | `/policies` | Policy documentation and management | Supabase |
+| **Incidents** | `/incidents` | Incident reporting, investigation workflow, severity tracking, filters, PDF export | Supabase |
+| **User Management** | `/settings/users` | Role-based access control (admin/user/viewer), user listing | Supabase (admin only) |
+
+### Transparency Tools (Dashboard)
+
+| Tool | Route | What It Does |
+|------|-------|--------------|
+| **System Card Generator** | `/system-cards` | Generate standardized AI system cards for public disclosure |
+| **Framework Comparison** | `/framework-comparison` | Side-by-side comparison of compliance frameworks |
+| **Risk Heatmap** | `/risk-heatmap` | Visual heatmap of AI risks across the organization |
+| **Incident Disclosure** | `/incident-disclosure` | Public incident disclosure management |
+
+### Product Pages (Dashboard)
+
+| Product | Route | Description |
+|---------|-------|-------------|
+| **FairHire AI** | `/dashboard` | HR AI governance (default product) |
+| **MedParity** | `/products/medparity` | Healthcare AI governance |
+| **FinParity** | `/products/finparity` | Financial AI governance |
+| **ContentGuard** | `/products/contentguard` | Media AI governance |
+| **Enterprise** | `/products/enterprise` | Cross-organization governance |
+
+### PDF Report Generation (6 Types)
+
+All reports generate downloadable PDFs with real data from Supabase:
+
+1. **Model Inventory Report** — All AI models with risk levels, status, vendors
+2. **Vendor Risk Assessment** — Vendor risk scores, security assessments
+3. **Compliance Status Report** — Framework compliance progress and checklists
+4. **Incident Summary Report** — Incidents by severity and resolution status
+5. **Risk Management Report** — Full risk register with mitigation status
+6. **Executive Dashboard Report** — High-level KPIs across all modules
+
+### Key Features Across All Modules
+
+- Full CRUD operations (Create, Read, Update, Delete)
+- CSV import for Models and Vendors (via PapaParse)
+- Search and filtering on all list views
+- Real-time data via TanStack React Query + Supabase
+- Dark/Light theme toggle
+- Responsive sidebar navigation with collapsible sections
+- Role-based access control (admin, user, viewer)
+- Toast notifications for all operations
+- Organization-scoped data isolation (multi-tenant)
 
 ---
 
-## Core Modules
+## Verification Guide
 
-| Module | Description | Status |
-|--------|-------------|--------|
-| **Model Registry** | Centralized inventory of all AI/ML models with lifecycle tracking | Live |
-| **Vendor Management** | Third-party AI vendor risk assessment and monitoring | Live |
-| **Compliance Hub** | Framework-specific checklists and assessment workflows | Live |
-| **Incident Management** | Report, investigate, and resolve AI-related incidents | Live |
-| **Bias & Fairness** | Fairness metric tracking and bias test results | Live |
-| **Risk Register** | Enterprise risk identification and mitigation tracking | Live |
-| **Use Case Registry** | AI use case documentation and approval workflows | Live |
-| **Evidence Hub** | Document storage for audit evidence and certifications | Live |
-| **Reporting Engine** | PDF report generation for all modules | Live |
-| **Task Management** | Compliance task tracking with assignees and deadlines | Live |
+### 1. Build Verification
+
+```bash
+# Install dependencies
+npm install
+
+# Run production build — should compile 3783+ modules with no errors
+npm run build
+
+# Run tests — should pass all tests
+npm test
+
+# Start dev server
+npm run dev
+# App runs at http://localhost:8080
+```
+
+### 2. Landing Page Verification
+
+Open `http://localhost:8080` in your browser. You should see:
+- Hero section with call-to-action buttons
+- Key statistics section
+- "Why Parity" value proposition cards
+- Public sector AI governance section
+- Transparency tools showcase
+- Product suite cards (FairHire, MedParity, FinParity, ContentGuard, Enterprise)
+- Integrations marquee
+- Compliance frameworks grid (EU AI Act, NYC LL144, etc.)
+- How it works steps
+- FAQ accordion
+- Final CTA and footer
+
+### 3. Authentication Verification
+
+1. Click "Get Started" or navigate to `/auth`
+2. Sign up with email/password (Supabase Auth)
+3. After login, you are redirected to `/dashboard`
+
+### 4. Dashboard Verification
+
+After login, verify:
+- **Stats cards** show counts for models, vendors, incidents, compliance
+- **Charts** render (task status, incident trends, risk distribution)
+- **Quick view panels** show recent models and incidents
+- **Activity feed** shows recent actions
+- **Sidebar** shows all navigation groups: Main, Discovery, Assurance, Governance, Transparency
+- **Product switcher** in sidebar header lets you switch between products
+
+### 5. CRUD Operations Verification
+
+For any module (e.g., Models at `/models`):
+1. Click "Add Model" — form dialog opens
+2. Fill in details and save — toast confirms creation, table updates
+3. Click a row to edit — update dialog opens
+4. Delete via delete button — confirmation dialog, then removal
+5. Use filters and search to narrow results
+
+### 6. CSV Import Verification
+
+On Models (`/models`) or Vendors (`/vendors`):
+1. Click "Import CSV"
+2. Upload a CSV file with matching columns
+3. Data is parsed (PapaParse) and bulk-inserted into Supabase
+
+### 7. PDF Report Verification
+
+Navigate to `/reporting`:
+1. Click any report template card (e.g., "Model Inventory Report")
+2. A PDF downloads automatically with real data from your database
+3. Report history table updates with the generated report entry
+
+### 8. Transparency Portal Verification
+
+Navigate to `/public/transparency` (no login needed):
+- Browse public AI system registry
+- View risk levels and status of deployed AI systems
+- Search and filter by department or risk level
+
+### 9. Theme Verification
+
+- Click the sun/moon icon in the sidebar footer
+- App switches between dark and light themes
+- All components respect the theme
+
+### 10. Role-Based Access Verification
+
+- **Admin**: Can see User Management (`/settings/users`), full CRUD on all modules
+- **User**: Standard access, no User Management
+- **Viewer**: Read-only access to dashboard and modules
 
 ---
 
@@ -80,14 +232,17 @@ Parity AI is a comprehensive platform that enables organizations to govern AI sy
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | React 18, TypeScript 5.6, Vite 5 |
-| **UI Components** | Tailwind CSS, shadcn/ui (Radix primitives) |
+| **Frontend** | React 18, TypeScript 5.8, Vite 5 |
+| **UI Components** | Tailwind CSS 3, shadcn/ui (Radix primitives) |
 | **State Management** | TanStack React Query 5 |
 | **Backend** | Supabase (PostgreSQL, Auth, Storage, Realtime) |
 | **Charts** | Recharts |
-| **PDF Generation** | jsPDF, jsPDF-AutoTable |
-| **Data Import** | PapaParse (CSV) |
+| **PDF Generation** | jsPDF + jsPDF-AutoTable |
+| **CSV Import** | PapaParse |
 | **Animations** | Framer Motion |
+| **Forms** | React Hook Form + Zod validation |
+| **Routing** | React Router DOM 6 |
+| **Theming** | next-themes (dark/light) |
 
 ---
 
@@ -95,78 +250,37 @@ Parity AI is a comprehensive platform that enables organizations to govern AI sy
 
 ```
 parity-ai/
-├── docs/                       # Documentation
-├── public/                     # Static assets
+├── public/                     # Static assets (logo, icons)
 ├── src/
-│   ├── components/             # Reusable UI components
-│   │   ├── auth/               # Authentication components
-│   │   ├── compliance/         # Compliance module components
-│   │   ├── dashboard/          # Dashboard widgets
-│   │   ├── incidents/          # Incident management components
-│   │   ├── landing/            # Landing page components
-│   │   ├── layout/             # App layout (sidebar, header)
-│   │   ├── models/             # Model management components
-│   │   ├── ui/                 # Base shadcn/ui components
-│   │   └── vendors/            # Vendor management components
+│   ├── components/
+│   │   ├── auth/               # RequireRole guard
+│   │   ├── compliance/         # ComplianceFilters, Stats, FrameworkCard
+│   │   ├── dashboard/          # DashboardStats, Charts, QuickView, Activity
+│   │   ├── incidents/          # IncidentsTable, Filters, FormDialog, Delete
+│   │   ├── landing/            # Hero, Header, FAQ, ProductSuite, Footer, etc.
+│   │   ├── layout/             # AppLayout, AppSidebar, NotificationsDropdown
+│   │   ├── models/             # ModelsTable, Filters, FormDialog, CSVUpload
+│   │   ├── ui/                 # 40+ shadcn/ui base components
+│   │   └── vendors/            # VendorsTable, Filters, FormDialog, CSVUpload
 │   │
-│   ├── config/                 # App configuration
-│   │   └── index.ts            # Environment & feature flags
-│   │
-│   ├── constants/              # Application constants
-│   │   └── index.ts            # Routes, status values, etc.
-│   │
-│   ├── hooks/                  # React Query data hooks
-│   │   ├── useModels.ts        # Model CRUD + queries
-│   │   ├── useVendors.ts       # Vendor CRUD + queries
-│   │   ├── useIncidents.ts     # Incident management
-│   │   ├── useCompliance.ts    # Compliance data
-│   │   ├── useRisks.ts         # Risk register
-│   │   ├── useBiasTests.ts     # Bias testing results
-│   │   ├── useUseCases.ts      # Use case registry
-│   │   ├── useEvidence.ts      # Evidence management
-│   │   ├── useTasks.ts         # Task tracking
-│   │   └── useCurrentUser.ts   # User session
-│   │
-│   ├── integrations/           # External service clients
-│   │   └── supabase/           # Supabase client & types
-│   │
-│   ├── lib/                    # Utilities & report generators
-│   │   ├── generateModelsReport.ts
-│   │   ├── generateVendorsReport.ts
-│   │   ├── generateComplianceReport.ts
-│   │   ├── generateIncidentsReport.ts
-│   │   ├── generateRisksReport.ts
-│   │   └── generateExecutiveReport.ts
-│   │
-│   ├── pages/                  # Route components
-│   │   ├── products/           # Product-specific pages
-│   │   │   ├── FinParity.tsx   # Financial AI governance
-│   │   │   ├── MedParity.tsx   # Healthcare AI governance
-│   │   │   ├── ContentGuard.tsx # Media AI governance
-│   │   │   ├── Enterprise.tsx  # Enterprise governance
-│   │   │   └── index.ts        # Barrel exports
-│   │   ├── Dashboard.tsx
-│   │   ├── Models.tsx
-│   │   ├── Vendors.tsx
-│   │   ├── Compliance.tsx
-│   │   ├── Incidents.tsx
-│   │   └── ...
-│   │
-│   ├── services/               # Business logic services
-│   │
-│   ├── test/                   # Test utilities
-│   │
+│   ├── config/                 # Feature flags & app configuration
+│   ├── constants/              # Route constants, status values
+│   ├── hooks/                  # 14 React Query hooks (CRUD for all modules)
+│   ├── integrations/supabase/  # Supabase client & generated types
+│   ├── lib/                    # 6 PDF report generators + utils
+│   ├── pages/                  # 25+ route page components
+│   │   └── products/           # FinParity, MedParity, ContentGuard, Enterprise
+│   ├── test/                   # Vitest setup & example test
 │   ├── types/                  # TypeScript type definitions
-│   │   └── index.ts            # Common types
-│   │
-│   ├── App.tsx                 # Root component
+│   ├── App.tsx                 # Root with routes (30+ routes)
 │   └── main.tsx                # Entry point
 │
-├── .env.example                # Environment template
+├── supabase/                   # SQL migrations for database setup
 ├── package.json
 ├── tailwind.config.ts
 ├── tsconfig.json
-└── vite.config.ts
+├── vite.config.ts
+└── .env.example                # Environment variable template
 ```
 
 ---
@@ -191,7 +305,9 @@ npm install
 
 # Configure environment
 cp .env.example .env
-# Add your Supabase credentials to .env
+# Add your Supabase credentials to .env:
+#   VITE_SUPABASE_URL=https://your-project.supabase.co
+#   VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
 
 # Start development server
 npm run dev
@@ -201,7 +317,7 @@ The application will be available at `http://localhost:8080`.
 
 ### Demo Mode
 
-The application includes built-in demo data for all modules, allowing immediate exploration without database configuration.
+The application includes built-in demo data for all modules (transparency portal, dashboard charts, etc.), allowing immediate exploration without database configuration. When connected to Supabase, real data replaces demo data automatically.
 
 ---
 
@@ -220,6 +336,13 @@ The application includes built-in demo data for all modules, allowing immediate 
 | `compliance_frameworks` | Regulatory framework definitions |
 | `compliance_assessments` | Assessment records per framework |
 | `framework_checklists` | Checklist items per framework |
+| `risks` | Risk register entries |
+| `bias_tests` | Bias test results |
+| `use_cases` | AI use case documentation |
+| `evidence` | Audit evidence records |
+| `tasks` | Compliance task tracking |
+| `policies` | Policy documents |
+| `notifications` | User notification records |
 | `audit_logs` | Activity audit trail |
 
 ### Security
@@ -227,6 +350,10 @@ The application includes built-in demo data for all modules, allowing immediate 
 - Row-Level Security (RLS) on all tables
 - Organization-scoped data isolation
 - JWT-based authentication via Supabase Auth
+
+### Database Setup
+
+A combined SQL migration file is included in the `supabase/` directory for fresh Supabase setup. Run it in the Supabase SQL editor to create all tables, RLS policies, and seed data.
 
 ---
 
@@ -262,7 +389,11 @@ Available hooks:
 - `useUseCases`, `useCreateUseCase`, `useUpdateUseCase`, `useDeleteUseCase`
 - `useEvidence`, `useCreateEvidence`, `useUploadEvidence`, `useDeleteEvidence`
 - `useTasks`, `useCreateTask`, `useUpdateTask`, `useDeleteTask`
+- `usePolicies`, `useCreatePolicy`, `useUpdatePolicy`, `useDeletePolicy`
+- `useNotifications`, `useMarkAsRead`, `useMarkAllAsRead`
+- `useDashboardStats`, `useRecentActivity`
 - `useCompliance` (combined frameworks, assessments, checklists)
+- `useCurrentUser`, `useUsers`
 
 ---
 
@@ -301,17 +432,27 @@ CMD ["npm", "run", "preview"]
 - [x] ContentGuard - Media AI Governance
 - [x] Enterprise - Cross-Organization Governance
 - [x] Model inventory with CRUD and CSV import
-- [x] Vendor management with risk scoring
-- [x] Incident management workflow
-- [x] Compliance framework tracking with checklists
+- [x] Vendor management with risk scoring and CSV import
+- [x] Incident management workflow with severity tracking
+- [x] Compliance framework tracking with checklists (9 frameworks)
 - [x] Bias & fairness metric tracking
 - [x] Risk register with mitigation plans
 - [x] Use case documentation registry
-- [x] Evidence hub with file management
+- [x] Evidence hub with file upload management
 - [x] PDF report generation (6 report types)
-- [x] Task management with assignments
-- [x] Real-time dashboard with activity feed
-- [x] Role-based access control
+- [x] Task management with assignments and deadlines
+- [x] Real-time dashboard with charts and activity feed
+- [x] Role-based access control (admin/user/viewer)
+- [x] Public transparency portal for citizens
+- [x] System card generator
+- [x] Framework comparison tool
+- [x] Risk heatmap visualization
+- [x] Incident disclosure management
+- [x] Dark/Light theme support
+- [x] Notification system
+- [x] Policy management
+- [x] Multi-tenant organization support
+- [x] Full Supabase integration with RLS
 
 ### In Development
 

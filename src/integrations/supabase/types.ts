@@ -565,6 +565,11 @@ export type Database = {
           review_date: string | null
           created_at: string
           updated_at: string
+          source: string | null
+          regulation: string | null
+          affected_framework: string | null
+          recommended_action: string | null
+          auto_generated: boolean
         }
         Insert: {
           id?: string
@@ -584,6 +589,11 @@ export type Database = {
           review_date?: string | null
           created_at?: string
           updated_at?: string
+          source?: string | null
+          regulation?: string | null
+          affected_framework?: string | null
+          recommended_action?: string | null
+          auto_generated?: boolean
         }
         Update: {
           id?: string
@@ -603,6 +613,11 @@ export type Database = {
           review_date?: string | null
           created_at?: string
           updated_at?: string
+          source?: string | null
+          regulation?: string | null
+          affected_framework?: string | null
+          recommended_action?: string | null
+          auto_generated?: boolean
         }
         Relationships: [
           {
