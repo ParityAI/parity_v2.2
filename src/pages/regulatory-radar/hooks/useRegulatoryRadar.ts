@@ -69,29 +69,60 @@ export function useRegulatoryRadar() {
 
   const insertAlertToSupabase = useCallback(async (alert: ClassifiedAlert) => {
     // Get user's organization_id
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('organization_id')
       .single();
 
-    const { error } = await supabase.from('risks').insert({
+    if (profileError || !profile?.organization_id) {
+      console.error('Failed to get organization_id:', profileError);
+      toast.error('Cannot save to Risk Register — no organization found. Please ensure your profile is set up.');
+      throw new Error('No organization_id found');
+    }
+
+    // Build the full risk payload with RegulatoryRadar-specific columns
+    const riskPayload = {
       title: alert.title,
-      description: alert.description,
+      description: `${alert.description}${alert.recommended_action ? `\n\nRecommended Action: ${alert.recommended_action}` : ''}${alert.source ? `\n\nSource: ${alert.source}` : ''}${alert.regulation ? ` | Regulation: ${alert.regulation}` : ''}`,
       severity: alert.severity,
       category: alert.category || 'regulatory',
+      mitigation_status: 'not_started' as const,
+      likelihood: (alert.severity === 'critical' ? 'very_high' : alert.severity === 'major' ? 'high' : 'medium') as const,
+      organization_id: profile.organization_id,
+      identified_date: alert.date || new Date().toISOString().split('T')[0],
       source: alert.source,
       regulation: alert.regulation,
       affected_framework: alert.affected_framework,
       recommended_action: alert.recommended_action,
       auto_generated: true,
-      mitigation_status: 'not_started',
-      likelihood: alert.severity === 'critical' ? 'very_high' : alert.severity === 'major' ? 'high' : 'medium',
-      organization_id: profile?.organization_id ?? '',
-      identified_date: alert.date || new Date().toISOString().split('T')[0],
-    });
+    };
+
+    const { error } = await supabase.from('risks').insert(riskPayload);
 
     if (error) {
-      console.error('Failed to insert risk:', error);
+      // If the new columns don't exist yet, retry with only core fields
+      if (error.message?.includes('column') || error.code === '42703') {
+        console.warn('RegulatoryRadar columns not found, inserting with core fields only');
+        const { error: fallbackError } = await supabase.from('risks').insert({
+          title: riskPayload.title,
+          description: riskPayload.description,
+          severity: riskPayload.severity,
+          category: riskPayload.category,
+          mitigation_status: riskPayload.mitigation_status,
+          likelihood: riskPayload.likelihood,
+          organization_id: riskPayload.organization_id,
+          identified_date: riskPayload.identified_date,
+        });
+        if (fallbackError) {
+          console.error('Fallback insert also failed:', fallbackError.message);
+          toast.error(`Failed to save risk: ${fallbackError.message}`);
+          throw fallbackError;
+        }
+        return; // fallback succeeded
+      }
+
+      console.error('Failed to insert risk:', error.message, error.details);
+      toast.error(`Failed to save risk: ${error.message}`);
       throw error;
     }
   }, []);
@@ -229,5 +260,6 @@ export function useRegulatoryRadar() {
     agentStatuses,
     alerts,
     lastResult,
+    insertAlertToSupabase,
   };
 }

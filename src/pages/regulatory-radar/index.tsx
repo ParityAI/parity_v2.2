@@ -4,6 +4,7 @@ import { Radar, Shield, AlertTriangle, Clock, TrendingUp, FileDown, Play } from 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRegulatoryRadar } from './hooks/useRegulatoryRadar';
 import { AgentStatusCards } from './components/AgentStatus';
 import { AlertFeed } from './components/AlertFeed';
@@ -23,8 +24,10 @@ export default function RegulatoryRadar() {
     agentStatuses,
     alerts,
     lastResult,
+    insertAlertToSupabase,
   } = useRegulatoryRadar();
 
+  const queryClient = useQueryClient();
   const [demoMode, setDemoMode] = useState(false);
   const [demoAlerts, setDemoAlerts] = useState<ClassifiedAlert[]>([]);
   const [demoStatuses, setDemoStatuses] = useState<Record<string, SourceStatus> | null>(null);
@@ -49,7 +52,7 @@ export default function RegulatoryRadar() {
 
     toast.info('Demo mode — simulating scan with realistic data...');
 
-    // Simulate agents completing one by one
+    // Phase 1 & 2: Simulate agents detecting + classifying one by one
     const sourceOrder = ['eur-lex', 'eu-ai-office', 'nist', 'nyc-ll144'] as const;
     for (let i = 0; i < sourceOrder.length; i++) {
       await new Promise((r) => setTimeout(r, 800));
@@ -80,8 +83,26 @@ export default function RegulatoryRadar() {
       }
     }
 
-    toast.success('Demo scan complete — 4 alerts detected across 4 sources');
-  }, []);
+    // Phase 3: ENFORCE — Save demo alerts to Risk Register
+    let savedCount = 0;
+    for (const alert of DEMO_ALERTS) {
+      try {
+        await insertAlertToSupabase(alert);
+        savedCount++;
+      } catch {
+        // Error already logged/toasted inside insertAlertToSupabase
+      }
+    }
+
+    // Invalidate risks query so Risk Register page shows new entries
+    queryClient.invalidateQueries({ queryKey: ['risks'] });
+
+    if (savedCount > 0) {
+      toast.success(`Demo scan complete — ${DEMO_ALERTS.length} alerts detected, ${savedCount} saved to Risk Register`);
+    } else {
+      toast.success('Demo scan complete — 4 alerts detected across 4 sources');
+    }
+  }, [insertAlertToSupabase, queryClient]);
 
   const handleExportPDF = useCallback(() => {
     if (activeAlerts.length === 0) {
